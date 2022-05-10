@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Homebrew on trail-tech blog</title><link>https://kita21.github.io/trail-tech/tags/homebrew/</link><description>Recent content in Homebrew on trail-tech blog</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Tue, 10 May 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://kita21.github.io/trail-tech/tags/homebrew/index.xml" rel="self" type="application/rss+xml"/><item><title>[Homebrew] brewで過去のバージョン使いたいんだけど</title><link>https://kita21.github.io/trail-tech/posts/003-homebrew-version-managed/</link><pubDate>Tue, 10 May 2022 00:00:00 +0000</pubDate><guid>https://kita21.github.io/trail-tech/posts/003-homebrew-version-managed/</guid><description>Homebrewのパッケージをinstallした後にそのversionに問題があり、過去versionを使用したい場合がありますがありますよね？
+ってことでHomebrewってバージョン管理できないのって思って調べてみました。
+まずは、Homebrewについて←古いですが、結構網羅的に書いてあります。
+では、過去versionをinstallする方法ですね
+今回は、yqのパッケージを例として説明していきます。
+下準備 まずは、yqをinstallします。
+$ brew info yq .. ... $ yq -V yq (https://github.com/mikefarah/yq/) version 4.25.1 ここでyqの4.25.1に問題があって、4.24系を使用したいとします。
+$ brew install yq@4.24としてももちろんダメです。
+$ brew install yq@4.24 Warning: No available formula with the name &amp;#34;yq@4.24&amp;#34;. ==&amp;gt; Searching for similarly named formulae... Error: No similarly named formulae found. ==&amp;gt; Searching for a previously deleted formula (in the last month)... Warning: homebrew/core is shallow clone. To get its complete history, run: git -C &amp;#34;$(brew --repo homebrew/core)&amp;#34; fetch --unshallow Error: No previously deleted formula found.</description></item></channel></rss>

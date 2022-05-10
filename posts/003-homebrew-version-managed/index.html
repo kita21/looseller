@@ -1,0 +1,96 @@
+<!doctype html><html lang=ja><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="kita"><meta name=description content="homebrew version managed"><meta name=keywords content="blog,tech,engineer"><meta name=twitter:card content="summary"><meta name=twitter:title content="[Homebrew] brewで過去のバージョン使いたいんだけど"><meta name=twitter:description content="homebrew version managed"><meta property="og:title" content="[Homebrew] brewで過去のバージョン使いたいんだけど"><meta property="og:description" content="homebrew version managed"><meta property="og:type" content="article"><meta property="og:url" content="https://kita21.github.io/trail-tech/posts/003-homebrew-version-managed/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-05-10T00:00:00+00:00"><meta property="article:modified_time" content="2022-05-10T00:00:00+00:00"><title>[Homebrew] brewで過去のバージョン使いたいんだけど · trail-tech blog</title><link rel=canonical href=https://kita21.github.io/trail-tech/posts/003-homebrew-version-managed/><link rel=preload href="/fonts/forkawesome-webfont.woff2?v=1.2.0" as=font type=font/woff2 crossorigin><link rel=stylesheet href=/trail-tech/css/coder.min.d9fddbffe6f27e69985dc5fe0471cdb0e57fbf4775714bc3d847accb08f4a1f6.css integrity="sha256-2f3b/+byfmmYXcX+BHHNsOV/v0d1cUvD2Eesywj0ofY=" crossorigin=anonymous media=screen><link rel=icon type=image/png href=/trail-tech/images/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/trail-tech/images/favicon-16x16.png sizes=16x16><link rel=apple-touch-icon href=/trail-tech/images/apple-touch-icon.png><link rel=apple-touch-icon sizes=180x180 href=/trail-tech/images/apple-touch-icon.png><meta name=generator content="Hugo 0.98.0"></head><body class="preload-transitions colorscheme-light"><div class=float-container><a id=dark-mode-toggle class=colorscheme-toggle><i class="fa fa-adjust fa-fw" aria-hidden=true></i></a></div><main class=wrapper><nav class=navigation><section class=container><a class=navigation-title href=/trail-tech>trail-tech blog</a>
+<input type=checkbox id=menu-toggle>
+<label class="menu-button float-right" for=menu-toggle><i class="fa fa-bars fa-fw" aria-hidden=true></i></label><ul class=navigation-list><li class=navigation-item><a class=navigation-link href=/trail-tech/about>About</a></li><li class=navigation-item><a class=navigation-link href=/trail-tech/posts>Blog</a></li></ul></section></nav><div class=content><section class="container post"><article><header><div class=post-title><h1 class=title><a class=title-link href=https://kita21.github.io/trail-tech/posts/003-homebrew-version-managed/>[Homebrew] brewで過去のバージョン使いたいんだけど</a></h1></div><div class=post-meta><div class=date><span class=posted-on><i class="fa fa-calendar" aria-hidden=true></i>
+<time datetime=2022-05-10T00:00:00Z>5月 10, 2022</time></span>
+<span class=reading-time><i class="fa fa-clock-o" aria-hidden=true></i>
+2分で読めます</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
+<span class=tag><a href=/trail-tech/tags/homebrew/>Homebrew</a></span></div></div></header><div><p><a href=https://brew.sh/index_ja>Homebrew</a>のパッケージをinstallした後にそのversionに問題があり、過去versionを使用したい場合がありますがありますよね？<br>ってことでHomebrewってバージョン管理できないのって思って調べてみました。<br>まずは、<a href=https://qiita.com/vintersnow/items/fca0be79cdc28bd2f5e4>Homebrewについて</a>←古いですが、結構網羅的に書いてあります。</p><p>では、過去versionをinstallする方法ですね</p><p>今回は、<code>yq</code>のパッケージを例として説明していきます。</p><h2 id=下準備>下準備
+<a class=heading-link href=#%e4%b8%8b%e6%ba%96%e5%82%99><i class="fa fa-link" aria-hidden=true></i></a></h2><p>まずは、<code>yq</code>をinstallします。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ brew info yq
+</span></span><span style=display:flex><span>..
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ yq -V
+</span></span><span style=display:flex><span>yq <span style=color:#f92672>(</span>https://github.com/mikefarah/yq/<span style=color:#f92672>)</span> version 4.25.1
+</span></span></code></pre></div><p>ここでyqの4.25.1に問題があって、4.24系を使用したいとします。<br><code>$ brew install yq@4.24</code>としてももちろんダメです。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$  brew install yq@4.24
+</span></span><span style=display:flex><span>Warning: No available formula with the name <span style=color:#e6db74>&#34;yq@4.24&#34;</span>.
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Searching <span style=color:#66d9ef>for</span> similarly named formulae...
+</span></span><span style=display:flex><span>Error: No similarly named formulae found.
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Searching <span style=color:#66d9ef>for</span> a previously deleted formula <span style=color:#f92672>(</span>in the last month<span style=color:#f92672>)</span>...
+</span></span><span style=display:flex><span>Warning: homebrew/core is shallow clone. To get its complete history, run:
+</span></span><span style=display:flex><span>  git -C <span style=color:#e6db74>&#34;</span><span style=color:#66d9ef>$(</span>brew --repo homebrew/core<span style=color:#66d9ef>)</span><span style=color:#e6db74>&#34;</span> fetch --unshallow
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Error: No previously deleted formula found.
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Searching taps on GitHub...
+</span></span><span style=display:flex><span>Error: No formulae found in taps.
+</span></span></code></pre></div><h2 id=過去versionをinstallする>過去versionをinstallする
+<a class=heading-link href=#%e9%81%8e%e5%8e%bbversion%e3%82%92install%e3%81%99%e3%82%8b><i class="fa fa-link" aria-hidden=true></i></a></h2><p>まずは、installされた<code>yq</code>の情報を確認してみます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ brew info yq
+</span></span><span style=display:flex><span>yq: stable 4.25.1 <span style=color:#f92672>(</span>bottled<span style=color:#f92672>)</span>, HEAD
+</span></span><span style=display:flex><span>Process YAML documents from the CLI
+</span></span><span style=display:flex><span>https://github.com/mikefarah/yq
+</span></span><span style=display:flex><span>Conflicts with:
+</span></span><span style=display:flex><span>  python-yq <span style=color:#f92672>(</span>because both install <span style=color:#e6db74>`</span>yq<span style=color:#e6db74>`</span> executables<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>/usr/local/Cellar/yq/4.25.1 <span style=color:#f92672>(</span><span style=color:#ae81ff>9</span> files, 7.6MB<span style=color:#f92672>)</span> *
+</span></span><span style=display:flex><span>  Poured from bottle on 2022-05-11 at 00:07:20
+</span></span><span style=display:flex><span>From: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/yq.rb
+</span></span><span style=display:flex><span>License: MIT
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Dependencies
+</span></span><span style=display:flex><span>Build: go ✘, pandoc ✘
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Options
+</span></span><span style=display:flex><span>--HEAD
+</span></span><span style=display:flex><span>	Install HEAD version
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Caveats
+</span></span><span style=display:flex><span>zsh completions have been installed to:
+</span></span><span style=display:flex><span>  /usr/local/share/zsh/site-functions
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Analytics
+</span></span><span style=display:flex><span>install: 27,666 <span style=color:#f92672>(</span><span style=color:#ae81ff>30</span> days<span style=color:#f92672>)</span>, 83,502 <span style=color:#f92672>(</span><span style=color:#ae81ff>90</span> days<span style=color:#f92672>)</span>, 272,997 <span style=color:#f92672>(</span><span style=color:#ae81ff>365</span> days<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>install-on-request: 27,426 <span style=color:#f92672>(</span><span style=color:#ae81ff>30</span> days<span style=color:#f92672>)</span>, 82,758 <span style=color:#f92672>(</span><span style=color:#ae81ff>90</span> days<span style=color:#f92672>)</span>, 270,278 <span style=color:#f92672>(</span><span style=color:#ae81ff>365</span> days<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>build-error: <span style=color:#ae81ff>0</span> <span style=color:#f92672>(</span><span style=color:#ae81ff>30</span> days<span style=color:#f92672>)</span>
+</span></span></code></pre></div><p>homebrewのcoreディレクトリに移動します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/
+</span></span></code></pre></div><div class="notice tip"><div class=notice-title><i class="fa fa-lightbulb-o" aria-hidden=true></i>Tip</div><div class=notice-content><p>homebrew-caskの場合は、以下のディレクトリになります。<br><code>$ cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask/Casks/</code></p><p>caskかどうかを調べるには、
+<code>brew list</code>で確認できます</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ brew list
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Formulae
+</span></span><span style=display:flex><span>ls /usr/local/Cellar
+</span></span><span style=display:flex><span>awscli gzip yq
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>==</span>&gt; Casks
+</span></span><span style=display:flex><span>ls /usr/local/Caskroom
+</span></span><span style=display:flex><span>multipass
+</span></span></code></pre></div></div></div><p><code>git log</code>で対象のバージョンのコミット一覧を出します。<br>(表示を簡素化したいので<code>--onetime</code>をつけます。)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ git log --onetime yq.rb
+</span></span><span style=display:flex><span>5bb72725cdd yq: update 4.25.1 bottle.
+</span></span><span style=display:flex><span><span style=color:#ae81ff>30938091054</span> yq 4.25.1
+</span></span><span style=display:flex><span>b3cc83b8e78 yq: update 4.24.5 bottle.
+</span></span><span style=display:flex><span>e62faccb2b5 yq 4.24.5
+</span></span><span style=display:flex><span>c530cb21ee4 yq: update 4.24.4 bottle.
+</span></span><span style=display:flex><span>27f94f1d25c yq 4.24.4
+</span></span><span style=display:flex><span>ca3f87b0bdc yq: update 4.24.2 bottle.
+</span></span><span style=display:flex><span>e5d8631a595 yq 4.24.2
+</span></span><span style=display:flex><span>6f9c4542d48 yq: update 4.23.1 bottle.
+</span></span><span style=display:flex><span>99fe5894efc yq 4.23.1
+</span></span><span style=display:flex><span>a479a5f0324 yq: update 4.22.1 bottle.
+</span></span><span style=display:flex><span>e5d8cb2cd58 yq 4.22.1
+</span></span><span style=display:flex><span>87a495ad644 <span style=color:#f92672>(</span>grafted<span style=color:#f92672>)</span> dosbox-x: update 0.83.23 bottle.
+</span></span></code></pre></div><p>version4.24.5がありました。
+では、reversionを使って指定versionまで戻りましょう</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ git checkout b3cc83b8e78 yq.rb
+</span></span><span style=display:flex><span>Updated <span style=color:#ae81ff>1</span> path from b3cc83b8e78
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ brew info yq
+</span></span><span style=display:flex><span>yq: stable 4.24.5 <span style=color:#f92672>(</span>bottled<span style=color:#f92672>)</span>, HEAD
+</span></span><span style=display:flex><span>Process YAML documents from the CLI
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>stableが4.24.5になりましたね</p><p>実際にinstallします。<br>installする前にパッケージを無効化しないと怒られるのでunlinkしてからinstallします。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ brew unlink yq
+</span></span><span style=display:flex><span>Unlinking /usr/local/Cellar/yq/4.25.1... <span style=color:#ae81ff>5</span> symlinks removed.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ brew install yq
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ yq -V
+</span></span><span style=display:flex><span>yq <span style=color:#f92672>(</span>https://github.com/mikefarah/yq/<span style=color:#f92672>)</span> version 4.24.5
+</span></span></code></pre></div><p>無事4.24系をinstallできました。</p><p>gitのバージョンをもとに戻しておきましょう。installしたコマンドは元に戻らないので安心してください。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ git reset --hard
+</span></span><span style=display:flex><span>HEAD is now at ffb125f99e0 deno: update 1.21.2 bottle.
+</span></span></code></pre></div><h2 id=install済みのversionに切り替える>install済みのversionに切り替える
+<a class=heading-link href=#install%e6%b8%88%e3%81%bf%e3%81%aeversion%e3%81%ab%e5%88%87%e3%82%8a%e6%9b%bf%e3%81%88%e3%82%8b><i class="fa fa-link" aria-hidden=true></i></a></h2><p><div class="notice warning"><div class=notice-title><i class="fa fa-exclamation-triangle" aria-hidden=true></i>Warning</div><div class=notice-content>2022/5/11現在の最新versionであるHomebrew 3.4.10では、<code>brew switch</code>が廃止になっておりinstall済みのversionを簡単に切り替えることができなくなっています。<br><a href=https://github.com/Homebrew/discussions/discussions/339>公式のdiscussions</a><br>今のところ切り替える方法は、上記のコミットを元に戻した後、<code>brew link</code>するしかないです。</div></div>brew switchに変わる良い方法を出たら記載しようと思います。</p><h2 id=終わりに>終わりに
+<a class=heading-link href=#%e7%b5%82%e3%82%8f%e3%82%8a%e3%81%ab><i class="fa fa-link" aria-hidden=true></i></a></h2><p>これで、brewでinstallしたversionで困らないですね。<br>もっとスマートにversionを切り替えられたら嬉しいですね今後に期待です。<br>もしかして知ってる方います？</p></div><footer></footer></article></section></div><footer class=footer><section class=container>©
+2022
+kita
+·
+利用技術 <a href=https://gohugo.io/>Hugo</a> & <a href=https://github.com/luizdepra/hugo-coder/>Coder</a>.</section></footer></main><script src=/trail-tech/js/coder.min.8fb86376a16e684af472a329aef502dbebcfab65ce264e9750d144912947c602.js integrity="sha256-j7hjdqFuaEr0cqMprvUC2+vPq2XOJk6XUNFEkSlHxgI="></script></body></html>
