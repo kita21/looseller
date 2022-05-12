@@ -87,7 +87,7 @@ Dockerイメージを削減する方法で、<code>COPY</code>や<code>RUN</code
 </span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
 </span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>CMD</span> npm start<span style=color:#960050;background-color:#1e0010>
 </span></span></span></code></pre></div><p>いい感じになりましたね。
-実際にできたイメージを比較してみましょう</p><p><img src=/trail-tech/images/posts/002/docker-image-compare.png alt=docker-image-compare>
+実際にできたイメージを比較してみましょう</p><p><img src=/images/posts/002/docker-image-compare.png alt=docker-image-compare>
 single-stage-buildとmulti-stage-build2で比べると、約1/6になりました。ここまで変わるとは&mldr;<br>この結果を見るにやらない理由がない！
 フロントエンドなら動作にnode_modulesが必要ないのでさらにイメージが小さくなりそうですね。</p><div class="notice note"><div class=notice-title><i class="fa fa-sticky-note" aria-hidden=true></i>Note</div><div class=notice-content><code>npm ci</code>をするときに<code>--progress=false</code>を追加すると進行表示をしない代わりにinstall時間が早まりビルド時間が短くなります。<br>command) <code>npm ci --production --progress=false</code></div></div><p>以上で検証を終わりにしたいと思います。</p><p>PCへの負担もクラウドの料金もビルド時間も少ない方がいいですよね</p></div><footer></footer></article></section></div><footer class=footer><section class=container>©
 2022
