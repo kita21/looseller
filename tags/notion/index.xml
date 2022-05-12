@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Notion on ゆるだら ブログ</title><link>https://looseller.com/tags/notion/</link><description>Recent content in Notion on ゆるだら ブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Thu, 12 May 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://looseller.com/tags/notion/index.xml" rel="self" type="application/rss+xml"/><item><title>[Notion] NotionでJiraを超えろ！</title><link>https://looseller.com/posts/004-notion-project-template/</link><pubDate>Thu, 12 May 2022 00:00:00 +0000</pubDate><guid>https://looseller.com/posts/004-notion-project-template/</guid><description>ある日思いました。お金をかけないで複数のプロジェクトを一元管理できるツール欲しいなと。
+ということで、最近話題のNotionを使用してとてもいい感じのタスク管理ツールを作成していきたいと思います。
+最初に完成品を公開にしているので、説明はいいから使用したいだけの人はどうぞ.
+→ 完成品
+このテンプレートで何ができるの？ Jiraのようなタスク管理ができる 複数のproject単位で、タスクを管理できる 期限切れやバックログとボード以外の機能も使える ボード、カレンダー、タイムライン(ロードマップ)とタスクについて多くの見方ができる アカウントを共有すればタダでチーム全員のタスク管理できる
+(この方法を採用した結果、メンバーによる裏切りタスクデータ破壊は一切の責任を負いません) とこんな感じで我ながら結構よくできていると思います。
+では、作成方法を解説していきます。
+テンプレートを作成する 適当な名前つける。今回の場合は[Example Project Planning] データベースで**ボードビュー*＊を選択 ついでにデータベース名をProject1にしましょう。絵文字もつけちゃう 左右の余白を縮小をクリック プロバティ追加 label(表示)
+プロバティの種類: セレクト
+今回の例) derection, design, backend, frontend, sales 優先度(表示)
+プロバティの種類: セレクト
+今回の例) 低, 中, 高 日時(表示) プロバティの種類: 日付
+日付の形式: 年/月/日
+時刻の形式: 24時間 assign(表示)
+プロバティの種類: セレクト or ユーザー(アカウント一つだと使えない)
+今回の例) 田中, 鈴木, jon 終了時刻(非表示)
+プロバティの種類: 関数</description></item></channel></rss>
