@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>zsh on ゆるだら ブログ</title><link>https://looseller.com/tags/zsh/</link><description>Recent content in zsh on ゆるだら ブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Sat, 16 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://looseller.com/tags/zsh/index.xml" rel="self" type="application/rss+xml"/><item><title>[zsh] zshrcのコマンドを解説 随時更新</title><link>https://looseller.com/posts/007-zshrc/</link><pubDate>Sat, 16 Jul 2022 00:00:00 +0000</pubDate><guid>https://looseller.com/posts/007-zshrc/</guid><description>setopt prompt_subst プロンプト表示前に変数展開を実行する
+autoload zshの関数を使用できるようにする オプション
+-U 設定する関数の中でaliasが動作しないようにする -z zsh形式の読み込みを指定している、他のshellが読み込まれないように指定している。 autoloadする関数 vcs_info gitやsvnなどのverison管理システムの方法を取得できる関数
+compinit 予測変換が可能になる
+colors プロンプトに色をつけることが可能になる
+参考文献 .zshrcで見かけるautoloadの意味と使い方 Qiita Zsh — autoload の基本 zshのターミナルにリポジトリの情報を表示してみる</description></item></channel></rss>
