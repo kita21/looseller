@@ -1,12 +1,1 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>node on ゆるだら ブログ</title><link>https://looseller.com/tags/node/</link><description>Recent content in node on ゆるだら ブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Wed, 07 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://looseller.com/tags/node/index.xml" rel="self" type="application/rss+xml"/><item><title>[nodenv] nodenv 入門. 公式翻訳</title><link>https://looseller.com/posts/009-nodenv/</link><pubDate>Wed, 07 Sep 2022 00:00:00 +0000</pubDate><guid>https://looseller.com/posts/009-nodenv/</guid><description>はじめに 私はnodeで開発するときにnodeのversion管理ツールでnodenvを使用しています
-osがmacの場合、brewで直接nodeをインストールするよりnodenvを使用したほうが管理しやすいです
-今回はnodenv入門ということで公式の通りにインストールしていきたいと思います
-Introduction 今回はbrewでnodenvをインストールする方法ではなくgithubから直接取得する方法を採用します
-This will get you going with the latest version of nodenv without needing a systemwide install.
-githubから直接インストールするとシステム全体のインストールではなく最新のnodenvを使用することが可能になります
-$ git clone https://github.com/nodenv/nodenv.git ~/.nodenv 次に任意ですが、以下のコマンド実行することによりbash拡張機能をコンパイルして、nodenvを高速化することができます
-Don&amp;rsquo;t worry if it fails; nodenv will still work normally
-もしコマンドで失敗しても特に問題ないそうです
-$ cd ~/.nodenv &amp;amp;&amp;amp; src/configure &amp;amp;&amp;amp; make -C src 次にnodenvのコマンドを使用できるように $PATHに~/.nodenv/binを追加します。 筆者はzshなので以下のコマンドになります
-$ echo &amp;#39;export PATH=&amp;#34;$HOME/.nodenv/bin:$PATH&amp;#34;&amp;#39; &amp;gt;&amp;gt; ~/.zshrc 次にnodenvのセットアップをします
-# nodenv初期化 $ ~/.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>node on ゆるだら ブログ</title><link>https://looseller.com/tags/node/</link><description>Recent content in node on ゆるだら ブログ</description><generator>Hugo -- gohugo.io</generator><language>ja</language><lastBuildDate>Wed, 07 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://looseller.com/tags/node/index.xml" rel="self" type="application/rss+xml"/><item><title>[nodenv] nodenv 入門. 公式翻訳</title><link>https://looseller.com/009-nodenv/</link><pubDate>Wed, 07 Sep 2022 00:00:00 +0000</pubDate><guid>https://looseller.com/009-nodenv/</guid><description/></item></channel></rss>
