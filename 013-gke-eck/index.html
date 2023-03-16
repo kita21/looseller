@@ -1,0 +1,369 @@
+<!doctype html><html lang=ja><head><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[kubernetes] GKEにElasticsearch環境を構築する","datePublished":"2023-03-16T00:00:00Z","dateModified":"2023-03-16T00:00:00Z","author":{"@type":"Person","name":"kita21","image":"https://ki-ta.blog/images/avatar.png"},"mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/ki-ta.blog\/013-gke-eck\/"},"publisher":{"@type":"Organization","name":"ゆるだら ブログ","logo":{"@type":"ImageObject","url":"https://ki-ta.blog/images/avatar.png"}},"description":"GCPのGKE上にのを利用してElastic Cloud on Kubernetes(ECK)を利用してElasticsearchを作成する","keywords":[]}</script><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=generator content="Hugo 0.111.3 with theme Tranquilpeak 0.5.3-BETA"><meta name=author content="kita21"><meta name=keywords content><meta name=description content="create elasticsearch on gke"><meta property="og:description" content="create elasticsearch on gke"><meta property="og:type" content="article"><meta property="og:title" content="[kubernetes] GKEにElasticsearch環境を構築する"><meta name=twitter:title content="[kubernetes] GKEにElasticsearch環境を構築する"><meta property="og:url" content="https://ki-ta.blog/013-gke-eck/"><meta property="twitter:url" content="https://ki-ta.blog/013-gke-eck/"><meta property="og:site_name" content="ゆるだら ブログ"><meta property="og:description" content="create elasticsearch on gke"><meta name=twitter:description content="create elasticsearch on gke"><meta property="og:locale" content="ja"><meta property="article:published_time" content="2023-03-16T00:00:00"><meta property="article:modified_time" content="2023-03-16T00:00:00"><meta property="article:tag" content="kubernetes"><meta property="article:tag" content="elasticsearch"><meta name=twitter:card content="summary"><meta property="og:image" content="https://ki-ta.blog/images/avatar.png"><meta property="twitter:image" content="https://ki-ta.blog/images/avatar.png"><title>[kubernetes] GKEにElasticsearch環境を構築する</title><link rel=icon href=https://ki-ta.blog/images/avatar.png><link rel=canonical href=https://ki-ta.blog/013-gke-eck/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://ki-ta.blog/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css><script async src="https://www.googletagmanager.com/gtag/js?id=G-VHM9P1Z719"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-VHM9P1Z719",{anonymize_ip:!1})}</script></head><body><div id=blog><header id=header data-behavior=1><i id=btn-open-sidebar class="fa fa-lg fa-bars"></i><div class=header-title><a class=header-title-link href=https://ki-ta.blog/ aria-label=ホームページへ>ゆるだら ブログ</a></div></header><nav id=sidebar data-behavior=1><div class=sidebar-container><div class=sidebar-profile><a href=https://ki-ta.blog/#about aria-label=著者についてもっと読む><img class=sidebar-profile-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像></a><h4 class=sidebar-profile-name>kita21</h4><h5 class=sidebar-profile-bio><strong>no rest no life</strong></h5></div><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/ title=Home><i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden=true></i>
+<span class=sidebar-button-desc>ホーム</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/categories title=Categories><i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden=true></i>
+<span class=sidebar-button-desc>カテゴリー</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/tags title=Tags><i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden=true></i>
+<span class=sidebar-button-desc>タグ</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/archives title=Archives><i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden=true></i>
+<span class=sidebar-button-desc>アーカイブ</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://github.com/kita21 target=_blank rel=noopener title=GitHub><i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden=true></i>
+<span class=sidebar-button-desc>GitHub</span></a></li><li class=sidebar-button><a class=sidebar-button-link href="https://www.facebook.com/profile.php?id=100035276171326" target=_blank rel=noopener title=Facebook><i class="sidebar-button-icon fab fa-lg fa-facebook" aria-hidden=true></i>
+<span class=sidebar-button-desc>Facebook</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/index.xml title=RSS><i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden=true></i>
+<span class=sidebar-button-desc>RSS</span></a></li></ul></div></nav><div id=main data-behavior=1 class=hasCoverMetaIn><article class=post id=top><div class="post-header main-content-wrap text-left"><h1 class=post-title>[kubernetes] GKEにElasticsearch環境を構築する</h1><div class="postShorten-meta post-meta"><time datetime=2023-03-16T00:00:00Z>3月 16, 2023</time></div></div><div class="post-content markdown"><div class=main-content-wrap><h1 id=table-of-contents>目次</h1><nav id=TableOfContents><ul><li><a href=#introduction>Introduction</a></li><li><a href=#今回作成するもの>今回作成するもの</a></li><li><a href=#環境>環境</a></li><li><a href=#前提>前提</a></li><li><a href=#handson>handsOn</a><ul><li><a href=#gkeセッティング>GKEセッティング</a></li><li><a href=#eckelasticsearch環境構築>ECK(Elasticsearch)環境構築</a></li><li><a href=#mongodbとelasticsearchを同期させる>mongoDBとElasticsearchを同期させる</a></li><li><a href=#kibanaeck構築>Kibana(ECK)構築</a></li></ul></li><li><a href=#終わりに>終わりに</a></li><li><a href=#参考>参考</a></li></ul></nav><h1 id=introduction>Introduction</h1><p>全文検索機能を作りたくて筆者は以前CloudRunの中にElasticSearchを入れて運用しようとしましたがなんたって辛い&mldr;<br>頑張ればなんとかいけるのですが、KibanaやElasticsearchへのimportデーモンなど疎通が難しく。また料金を抑えようとしてCloudRunのコールドスタートを使用しようとしたのですが、なんたって相性が悪すぎる&mldr;使い方がそもそも無理あるのでデファクトスタンダードであるkubernetes上でElasticsearchを構築したのでその備忘録になります。</p><h1 id=今回作成するもの>今回作成するもの</h1><ul><li>GKE上にElasticsearch環境の構築</li><li>mongoAtlasからデータを同期する</li><li>helmなどは使用しない</li></ul><p>完成系</p><ul><li><a href=https://github.com/kita21/tech-blog-sample/tree/main/013-gke-eck>https://github.com/kita21/tech-blog-sample/tree/main/013-gke-eck</a></li></ul><h1 id=環境>環境</h1><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ gcloud -v
+</span></span><span style=display:flex><span>Google Cloud SDK 420.0.0
+</span></span><span style=display:flex><span>gke-gcloud-auth-plugin 0.4.0
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ kubectl version --short
+</span></span><span style=display:flex><span>Client Version: v1.26.1
+</span></span><span style=display:flex><span>Kustomize Version: v4.5.7
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>ECK: v2.6.1
+</span></span><span style=display:flex><span>Elasticsearch: v8.6.2
+</span></span><span style=display:flex><span>Kibana: v8.6.2
+</span></span><span style=display:flex><span>monstache 6.7.11
+</span></span></code></pre></div><h1 id=前提>前提</h1><ul><li>kubectlの基本的なコマンドを使用できる</li><li>Elasticsearchの概要を知っている</li><li>gcpプロジェクトを作成している</li><li>gcloudコマンドをinstallしている</li><li>gke-gcloud-auth-pluginをinstallしている</li><li>MongoDBAtlasに登録している</li></ul><h1 id=handson>handsOn</h1><p>今回は、「わかりやすく解説するため」&「解説する主題ではない部分」とのことから機密情報部分(Secret)を直書きします。読者の皆様は機密情報には気をつけてください。</p><h2 id=gkeセッティング>GKEセッティング</h2><p>まずは、gcpにログインしプロジェクトセットします</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ gcloud auth login
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ gcloud config set project <span style=color:#f92672>{</span>PROJECT_ID<span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>次にElasticsearch用のGKEクラスターを作成していきます。<br>料金節約のためspotで作成します。ここからGCEの料金がかかるので注意です</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ gcloud container clusters create es-cluster <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --zone<span style=color:#f92672>=</span>asia-northeast1-a <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --spot <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --num-nodes<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --machine-type<span style=color:#f92672>=</span>e2-medium
+</span></span></code></pre></div><p>数分待つとクラスターができます。</p><p>作成されたら以下のコマンドでGKEを操作できるか確認してください</p><pre tabindex=0><code>$ kubectl config current-context
+gke_{project-id}_asia-northeast1-a_es-cluster
+</code></pre><h2 id=eckelasticsearch環境構築>ECK(Elasticsearch)環境構築</h2><p>次に以下のチュートリアルに沿ってECK環境をinstallしていきます
+<a href=https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-quickstart.html>https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-quickstart.html</a></p><p>まずは、ECKのCustom Resource Definitions(CRD)を作成</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl create -f https://download.elastic.co/downloads/eck/2.6.1/crds.yaml
+</span></span></code></pre></div><p>次にeck-operatorをinstallします</p><pre tabindex=0><code>$ kubectl apply -f https://download.elastic.co/downloads/eck/2.6.1/operator.yaml
+</code></pre><p>必要なリソースのinstallが終わったらElasticsearchを作成します</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>elasticsearch.k8s.elastic.co/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Elasticsearch</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>es-sample</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>version</span>: <span style=color:#ae81ff>8.6.2</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>nodeSets</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>count</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>config</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>node.store.allow_mmap</span>: <span style=color:#66d9ef>false</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl apply -f k8s/es.yaml
+</span></span></code></pre></div><p>少し時間が経ったら作成されていることが確認できます</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl get pods
+</span></span><span style=display:flex><span>NAME                     READY   STATUS    RESTARTS   AGE
+</span></span><span style=display:flex><span>es-sample-es-default-0   1/1     Running   <span style=color:#ae81ff>0</span>          2m19s
+</span></span></code></pre></div><p>外部から接続できるようにロードバランサーを追加します<br>今回はhttps化しないでいきます</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml(modify)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>elasticsearch.k8s.elastic.co/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Elasticsearch</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>es-sample</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>version</span>: <span style=color:#ae81ff>8.6.2</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>nodeSets</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>count</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>config</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>node.store.allow_mmap</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>http</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>service</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>type</span>: <span style=color:#ae81ff>LoadBalancer</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>tls</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>selfSignedCertificate</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>disabled</span>: <span style=color:#66d9ef>true</span>
+</span></span></code></pre></div><p>Elasticsearchのpodが立ったらrootパスワードを取得します</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl get secret
+</span></span><span style=display:flex><span>es-sample-es-elastic-user                 Opaque   <span style=color:#ae81ff>1</span>      12m
+</span></span><span style=display:flex><span><span style=color:#f92672>(</span>他secret<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ kubectl get secret es-sample-es-elastic-user -o go-template<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;{{.data.elastic | base64decode}}&#39;</span>
+</span></span><span style=display:flex><span>5Esma90y3459ppeh7ubsnU78 <span style=color:#75715e># 今回handsOn後Clusterを削除するのでパスワードを記載します</span>
+</span></span></code></pre></div><p>ElasticSearchに疎通してみましょう</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl get services
+</span></span><span style=display:flex><span>NAME                         TYPE           CLUSTER-IP      EXTERNAL-IP     PORT<span style=color:#f92672>(</span>S<span style=color:#f92672>)</span>          AGE
+</span></span><span style=display:flex><span>es-sample-es-http            LoadBalancer   10.120.11.252   34.146.210.75   9200:32020/TCP   10m
+</span></span><span style=display:flex><span><span style=color:#f92672>(</span>他service<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ curl -u <span style=color:#e6db74>&#34;elastic:5Esma90y3459ppeh7ubsnU78&#34;</span> <span style=color:#e6db74>&#34;http://34.146.210.75:9200&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;name&#34;</span> : <span style=color:#e6db74>&#34;es-sample-es-default-0&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;cluster_name&#34;</span> : <span style=color:#e6db74>&#34;es-sample&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;cluster_uuid&#34;</span> : <span style=color:#e6db74>&#34;YNw1s2ywRoKukHh9mWdiTA&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;version&#34;</span> : <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;number&#34;</span> : <span style=color:#e6db74>&#34;8.6.2&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;build_flavor&#34;</span> : <span style=color:#e6db74>&#34;default&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;build_type&#34;</span> : <span style=color:#e6db74>&#34;docker&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;build_hash&#34;</span> : <span style=color:#e6db74>&#34;2d58d0f136141f03239816a4e360a8d17b6d8f29&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;build_date&#34;</span> : <span style=color:#e6db74>&#34;2023-02-13T09:35:20.314882762Z&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;build_snapshot&#34;</span> : false,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;lucene_version&#34;</span> : <span style=color:#e6db74>&#34;9.4.2&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;minimum_wire_compatibility_version&#34;</span> : <span style=color:#e6db74>&#34;7.17.0&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;minimum_index_compatibility_version&#34;</span> : <span style=color:#e6db74>&#34;7.0.0&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;tagline&#34;</span> : <span style=color:#e6db74>&#34;You Know, for Search&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>これでElasticsearchの疎通はできましたね！<br>しかしデータを入れないとElasticsearchの意味はありません<br>次にmongoDBとElasticsearchを同期させる方法について記載します</p><h2 id=mongodbとelasticsearchを同期させる>mongoDBとElasticsearchを同期させる</h2><p>今回はデータベースとして<a href=https://www.mongodb.com/atlas/database>mongoDB Atlas</a>を利用します。既にmongoAtlasをセッティングしている前提で説明します。<br>同期させるデーモンには<a href=https://github.com/rwynn/monstache>monstache</a>を利用します。</p><p>MongoDB-Atlasのデータサンプル<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/013/013-mongodbatlas-sample-data.png></div></p><p>まず初めにElasticsearchにmonstache用のId,Passwordを設定します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml
+</span></span><span style=display:flex><span>   es-realm-secret.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Secret</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>es-realm-secret</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>stringData</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>users</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    monstache:password</span>    
+</span></span><span style=display:flex><span>  <span style=color:#f92672>users_roles</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    superuser:monstache</span>    
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl apply -f k8s/es-realm-secret.yaml
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ kubectl get secret es-realm-secret -o go-template<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;{{.data.users | base64decode}}&#39;</span>
+</span></span><span style=display:flex><span>monstache:password
+</span></span></code></pre></div><p>パスワードは今回テスト用なのでそのままにしますが、secretを利用する際はちゃんとmaskして管理してください<br>また権限は今回、最高権限にしているので各自調整してください</p><p>このrealmで作成したsecretをElasticsearchに読み込ませます</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml(modify)
+</span></span><span style=display:flex><span>   es-realm-secret.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>elasticsearch.k8s.elastic.co/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Elasticsearch</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>es-sample</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>version</span>: <span style=color:#ae81ff>8.6.2</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>auth</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>fileRealm</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>secretName</span>: <span style=color:#ae81ff>es-realm-secret</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>nodeSets</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>count</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>config</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>node.store.allow_mmap</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>http</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>service</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>type</span>: <span style=color:#ae81ff>LoadBalancer</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>tls</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>selfSignedCertificate</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>disabled</span>: <span style=color:#66d9ef>true</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl apply -f k8s/es.yaml
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ curl -u <span style=color:#e6db74>&#34;monstache:password&#34;</span> <span style=color:#e6db74>&#34;http://34.146.210.75:9200&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># Elasticsearch-Info</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>monstache用のパスワードでも疎通できることが確認できましたね</p><p>次にmonstache自体を構築していきます<br>最初にmonstacheの軽い説明をします。monstacheとはmongoDBとElasticsearchをリアルタイムで同期させることのできるデーモンになります。比較的簡単な設定項目で動かせることがメリットになります。<br>余談ですが最初は、Elastic社が出しているLogstashを利用しようとしたのですが、mongoDBからデータを取得するプラグインの<a href=https://github.com/phutchins/logstash-input-mongodb>logstash-input-mongodb</a>が正式版でないことと、コミットが2017年から止まっている(2023/03現在)ので候補から外しました。</p><p>ではmonstacheを作成していきます
+まずmonstacheとElasticsearchとで疎通するための情報をConfigMapとSecretで作成していきます</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml
+</span></span><span style=display:flex><span>   es-realm-secret.yaml
+</span></span><span style=display:flex><span>   monstache.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ConfigMap</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-mount-config</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>data</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>config.toml</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    direct-read-namespaces = [&#34;sample-database.sample-collection&#34;]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    change-stream-namespaces = [&#34;sample-database.sample-collection&#34;]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    [[mapping]]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    namespace = &#34;sample-database.sample-collection&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    index = &#34;sample-collection&#34;</span>    
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ConfigMap</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-config</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>data</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>elasticsearch-url</span>: <span style=color:#ae81ff>http://es-sample-es-internal-http:9200</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Secret</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-secret</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>stringData</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>mongodb-url</span>: <span style=color:#e6db74>&#34;mongodb+srv://sample-database:password@sample-project.xxxxxxx.mongodb.net&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>es-user</span>: <span style=color:#ae81ff>monstache</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>es-password</span>: <span style=color:#ae81ff>password</span>
+</span></span></code></pre></div><p>elasticsearch-urlの<code>http://es-sample-es-internal-http:9200</code>はelasticsearchのserviceです。cluster内ではservice名を指定することでも通信することが可能になります。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl get services
+</span></span><span style=display:flex><span>NAME                         TYPE           CLUSTER-IP     EXTERNAL-IP    PORT<span style=color:#f92672>(</span>S<span style=color:#f92672>)</span>          AGE
+</span></span><span style=display:flex><span>es-sample-es-default         ClusterIP      None           &lt;none&gt;         9200/TCP         43h
+</span></span><span style=display:flex><span>es-sample-es-http            LoadBalancer   10.120.6.54    34.146.210.75  9200:30861/TCP   43h
+</span></span><span style=display:flex><span>es-sample-es-internal-http   ClusterIP      10.120.5.234   &lt;none&gt;         9200/TCP         43h <span style=color:#75715e># このserviceのNAME</span>
+</span></span><span style=display:flex><span>es-sample-es-transport       ClusterIP      None           &lt;none&gt;         9300/TCP         43h
+</span></span><span style=display:flex><span>kubernetes                   ClusterIP      10.120.0.1     &lt;none&gt;         443/TCP          3d
+</span></span></code></pre></div><p>次にmonstacheのDeploymentを作成します<br>monstacheに設定する環境変数は以下を参照ください<br><a href=https://rwynn.github.io/monstache-site/config/#elasticsearch-user>https://rwynn.github.io/monstache-site/config/#elasticsearch-user</a></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml
+</span></span><span style=display:flex><span>   es-realm-secret.yaml
+</span></span><span style=display:flex><span>   monstache.yaml(modify)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>apps/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Deployment</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-deployment</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>labels</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>app</span>: <span style=color:#ae81ff>monstache</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>replicas</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>matchLabels</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>app</span>: <span style=color:#ae81ff>monstache</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>template</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>labels</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>app</span>: <span style=color:#ae81ff>monstache</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>containers</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>image</span>: <span style=color:#ae81ff>rwynn/monstache:6.7.11</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>containerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>command</span>: [<span style=color:#e6db74>&#34;monstache&#34;</span>, <span style=color:#e6db74>&#34;-f&#34;</span>, <span style=color:#e6db74>&#34;/monstache/config.toml&#34;</span>]
+</span></span><span style=display:flex><span>        <span style=color:#f92672>env</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>MONSTACHE_ES_URLS</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>valueFrom</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>configMapKeyRef</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-config</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>key</span>: <span style=color:#ae81ff>elasticsearch-url</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>MONSTACHE_MONGO_URL</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>valueFrom</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>secretKeyRef</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-secret</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>key</span>: <span style=color:#ae81ff>mongodb-url</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>MONSTACHE_ES_USER</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>valueFrom</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>secretKeyRef</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-secret</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>key</span>: <span style=color:#ae81ff>es-user</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>MONSTACHE_ES_PASS</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>valueFrom</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>secretKeyRef</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-secret</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>key</span>: <span style=color:#ae81ff>es-password</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>volumeMounts</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-volume</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>mountPath</span>: <span style=color:#ae81ff>/monstache</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>volumes</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-volume</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>configMap</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-mount-config</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>--- <span style=color:#75715e># 以下は同じ</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ConfigMap</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-mount-config</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>data</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>config.toml</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    direct-read-namespaces = [&#34;sample-database.sample-collection&#34;]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    change-stream-namespaces = [&#34;sample-database.sample-collection&#34;]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    [[mapping]]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    namespace = &#34;sample-database.sample-collection&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    index = &#34;sample-collection&#34;</span>    
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ConfigMap</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-config</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>data</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>elasticsearch-url</span>: <span style=color:#ae81ff>http://es-sample-es-internal-http:9200</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Secret</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>monstache-secret</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>stringData</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>mongodb-url</span>: <span style=color:#e6db74>&#34;mongodb+srv://sample-database:password@sample-project.xxxxxxx.mongodb.net&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>es-user</span>: <span style=color:#ae81ff>monstache</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>es-password</span>: <span style=color:#ae81ff>password</span>
+</span></span></code></pre></div><p>applyします</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl apply -f k8s/monstache.yaml
+</span></span></code></pre></div><p>monstacheが正しく動いているか確認してみましょう</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ kubectl get pods
+</span></span><span style=display:flex><span>NAME                                   READY   STATUS    RESTARTS   AGE
+</span></span><span style=display:flex><span>es-sample-es-default-0                 1/1     Running   <span style=color:#ae81ff>0</span>          44h
+</span></span><span style=display:flex><span>monstache-deployment-5f9b8fdb4-9rnrt   1/1     Running   <span style=color:#ae81ff>0</span>          5s
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ kubectl logs monstache-deployment-5f9b8fdb4-9rnrt
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Started monstache version 6.7.11
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Go version go1.17.4
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 MongoDB go driver v1.10.3
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Elasticsearch go driver 7.0.31
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Successfully connected to MongoDB version 5.0.15
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Successfully connected to Elasticsearch version 8.6.2
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Listening <span style=color:#66d9ef>for</span> events
+</span></span><span style=display:flex><span>INFO 2023/03/16 06:49:41 Watching changes on collection sample-database.sample-collection
+</span></span></code></pre></div><p>問題なく動いてそうですね</p><p>Elasticsearchにちゃんとデータが入っているかみてみましょう<br>rootユーザーでElasticsearchにアクセスします</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ curl -u <span style=color:#e6db74>&#34;elastic:5Esma90y3459ppeh7ubsnU78&#34;</span> http://34.146.89.79:9200/_cat/indices
+</span></span><span style=display:flex><span>yellow open sample-collection          H9Z5mfJLQJCfIXuSXZbCwg <span style=color:#ae81ff>1</span> <span style=color:#ae81ff>1</span>  <span style=color:#ae81ff>2</span>  <span style=color:#ae81ff>0</span>    5kb    5kb
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ curl -u <span style=color:#e6db74>&#34;monstache:password&#34;</span> http://34.146.89.79:9200/sample-collection/_search | jq .
+</span></span><span style=display:flex><span><span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;took&#34;</span>: 1,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;timed_out&#34;</span>: false,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;_shards&#34;</span>: <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;total&#34;</span>: 1,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;successful&#34;</span>: 1,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;skipped&#34;</span>: 0,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;failed&#34;</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;hits&#34;</span>: <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;total&#34;</span>: <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;value&#34;</span>: 2,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;relation&#34;</span>: <span style=color:#e6db74>&#34;eq&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;max_score&#34;</span>: 1,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;hits&#34;</span>: <span style=color:#f92672>[</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_index&#34;</span>: <span style=color:#e6db74>&#34;sample-collection&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_id&#34;</span>: <span style=color:#e6db74>&#34;641270d0bee8466c1c3edf95&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_score&#34;</span>: 1,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_source&#34;</span>: <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>          <span style=color:#e6db74>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;サンプルドキュメント2&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_index&#34;</span>: <span style=color:#e6db74>&#34;sample-collection&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_id&#34;</span>: <span style=color:#e6db74>&#34;6412709cbee8466c1c3edf94&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_score&#34;</span>: 1,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;_source&#34;</span>: <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>          <span style=color:#e6db74>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;サンプルドキュメント1&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><p>ちゃんとデータが入っていることが確認できました！これでElasticsearchのセットアップは完了になります。<br>あとはアプリケーションからSDK経由でデータを取得したり、 全文検索エンジンで使用したりするなど様々な使用用途があるのでお好きに</p><h2 id=kibanaeck構築>Kibana(ECK)構築</h2><p>ついでですが、KibanaもECKだといい感じにElasticsearchと通信してくれます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>k8s
+</span></span><span style=display:flex><span> L es.yaml
+</span></span><span style=display:flex><span>   es-realm-secret.yaml
+</span></span><span style=display:flex><span>   monstache.yaml
+</span></span><span style=display:flex><span>   kibana.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>kibana.k8s.elastic.co/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Kibana</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kibana-sample</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>version</span>: <span style=color:#ae81ff>8.6.2</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>count</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>elasticsearchRef</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>es-sample</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>http</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>service</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>type</span>: <span style=color:#ae81ff>LoadBalancer</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>tls</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>selfSignedCertificate</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>disabled</span>: <span style=color:#66d9ef>true</span>
+</span></span></code></pre></div><h1 id=終わりに>終わりに</h1><p>今回は、Elasticsearchの構築、mongoDBとの連携まで行いました。意外とmongoDBとの連携記事がないので参考になればなと思います。<br>まだipでElasticsearchにアクセスしているので、次の記事ではドメインでのアクセスとssl化する方法について執筆できればなと思います。<br>最後に念を押しておきます。<br>機密情報を管理する際はSecretで作成したからといってGitHubに平文でpushするのはやめましょう。後々苦労します&mldr;<br>あと、LoadBalancerは個人で使用するにはかなり高いので作成しっぱなしには気をつけてください。後々後悔します&mldr;</p><h1 id=参考>参考</h1><ul><li><a href=https://www.elastic.co/guide/en/cloud-on-k8s/2.6/index.html>Elastic Cloud on Kubernetes</a></li><li><a href=https://rwynn.github.io/monstache-site/>Monstache</a></li><li><a href=https://kubernetes.io/ja/docs/concepts/workloads/controllers/deployment/>kubernetes.io / Deployment</a></li></ul></div></div><div id=post-footer class="post-footer main-content-wrap"><div class=post-footer-tags><span class="text-color-light text-small">タグ</span><br><a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/kubernetes/>kubernetes</a>
+<a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/elasticsearch/>elasticsearch</a></div><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/012-apply-call-bind/ data-tooltip="[Node.js] apply関数の挙動を懇切丁寧に解説する" aria-label="前: [Node.js] apply関数の挙動を懇切丁寧に解説する"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></article><footer id=footer class=main-content-wrap><span class=copyrights>&copy; 2023 <a href=https://github.com/kita21>kita21</a>. All Rights Reserved</span></footer></div><div id=bottom-bar class=post-bottom-bar data-behavior=1><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/012-apply-call-bind/ data-tooltip="[Node.js] apply関数の挙動を懇切丁寧に解説する" aria-label="前: [Node.js] apply関数の挙動を懇切丁寧に解説する"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></div><div id=about><div id=about-card><div id=about-btn-close><i class="fa fa-times"></i></div><img id=about-card-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像><h4 id=about-card-name>kita21</h4><div id=about-card-bio><strong>no rest no life</strong></div><div id=about-card-job><i class="fa fa-briefcase"></i><br>web engineer</div><div id=about-card-location><i class="fa fa-map-marker-alt"></i><br>Japan</div></div></div><div id=cover style=background-image:url(https://ki-ta.blog/images/cover.jpg)></div><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://ki-ta.blog/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-gE8KAQyFIzV1C9+GZ8TKJHZS2s+n7EjNtC+IMRn1l5+WYJTHOODUM6JSjZhFhqXmc7bG8Av6XXpckA4tYhflnw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/apache.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-EWROca+bote+7Oaaar1F6y74iZj1r1F9rm/ly7o+/FwJopbBaWtsFDmaKoZDd3QiGU2pGacBirHJNivmGLYrow==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/go.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-GDVzAn0wpx1yVtQsRWmFc6PhJiLBPdUic+h4GWgljBh904O3JU10fk9EKNpVyIoPqkFn54rgL2QBG4BmUTMpiQ==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/http.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-UgZlma8NzkrDb/NWgmLIcTrH7i/CSnLLDRFqCSNF5NGPpjKmzyM25qcoXGOup8+cDakKyaiTDd7N4dyH4YT+IA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/less.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-lot9koe73sfXIrUvIPM/UEhuMciN56RPyBdOyZgfO53P2lkWyyXN7J+njcxIIBRV+nVDQeiWtiXg+bLAJZDTfg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/nginx.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-Zd3e7XxHP00TD0Imr0PIfeM0fl0v95kMWuhyAS3Wn1UTSXTkz0OhtRgBAr4JlmADRgiXr4x7lpeUdqaGN8xIog==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/puppet.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-qtqDO052iXMSP+5d/aE/jMtL9vIIGvONgTJziC2K/ZIB1yEGa55WVxGE9/08rSQ62EoDifS9SWVGZ7ihSLhzMA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/scss.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-1NmkjnEDnwwwcu28KoQF8vs3oaPFokQHbmbtwGhFfeDsQZtVFI8zW2aE9O8yMYdpdyKV/5blE4pSWw4Z/Sv97w==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/stylus.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-B2wSfruPjr8EJL6IIzQr1eAuDwrsfIfccNf/LCEdxELCgC/S/ZMt/Uvk80aD79m7IqOqW+Sw8nbkvha20yZpzg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/swift.min.js></script>
+<script async crossorigin=anonymous defer fbadminids=100035276171326 integrity="sha512-28oDiQZGKUVN6wQ7PSLPNipOcmkCALXKwOi7bnkyFf8QiMZQxG9EQoy/iiNx6Zxj2cG2SbVa4dXKigQhu7GiFw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/yaml.min.js></script>
+<script>$(document).ready(function(){hljs.configure({classPrefix:"",useBR:!1}),$("pre.code-highlight > code, pre > code").each(function(e,t){$(this).hasClass("codeblock")||$(this).addClass("codeblock"),hljs.highlightBlock(t)})})</script></body></html>
