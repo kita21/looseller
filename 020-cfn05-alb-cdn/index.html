@@ -1,0 +1,455 @@
+<!doctype html><html lang=ja><head><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編","datePublished":"2023-05-06T00:00:00Z","dateModified":"2023-05-06T00:00:00Z","author":{"@type":"Person","name":"kita21","image":"https://ki-ta.blog/images/avatar.png"},"mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/ki-ta.blog\/020-cfn05-alb-cdn\/"},"publisher":{"@type":"Organization","name":"ゆるだら ブログ","logo":{"@type":"ImageObject","url":"https://ki-ta.blog/images/avatar.png"}},"description":"CloudFormationで環境作り完全版 Part5. ロードバランサーで負荷分散・CloudFrontで配信最適化","keywords":[]}</script><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=generator content="Hugo 0.111.3 with theme Tranquilpeak 0.5.3-BETA"><meta name=author content="kita21"><meta name=keywords content><meta name=description content="Creating an Environment with CloudFormation Complete Version Part 5: LoadBalancer, CDN Edition"><meta property="og:description" content="Creating an Environment with CloudFormation Complete Version Part 5: LoadBalancer, CDN Edition"><meta property="og:type" content="article"><meta property="og:title" content="[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編"><meta name=twitter:title content="[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編"><meta property="og:url" content="https://ki-ta.blog/020-cfn05-alb-cdn/"><meta property="twitter:url" content="https://ki-ta.blog/020-cfn05-alb-cdn/"><meta property="og:site_name" content="ゆるだら ブログ"><meta property="og:description" content="Creating an Environment with CloudFormation Complete Version Part 5: LoadBalancer, CDN Edition"><meta name=twitter:description content="Creating an Environment with CloudFormation Complete Version Part 5: LoadBalancer, CDN Edition"><meta property="og:locale" content="ja"><meta property="article:published_time" content="2023-05-06T00:00:00"><meta property="article:modified_time" content="2023-05-06T00:00:00"><meta property="article:tag" content="AWS"><meta property="article:tag" content="cloudformation"><meta name=twitter:card content="summary"><meta property="og:image" content="https://ki-ta.blog/images/avatar.png"><meta property="twitter:image" content="https://ki-ta.blog/images/avatar.png"><title>[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編</title><link rel=icon href=https://ki-ta.blog/images/avatar.png><link rel=canonical href=https://ki-ta.blog/020-cfn05-alb-cdn/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://ki-ta.blog/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css><script async src="https://www.googletagmanager.com/gtag/js?id=G-VHM9P1Z719"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-VHM9P1Z719",{anonymize_ip:!1})}</script></head><body><div id=blog><header id=header data-behavior=1><i id=btn-open-sidebar class="fa fa-lg fa-bars"></i><div class=header-title><a class=header-title-link href=https://ki-ta.blog/ aria-label=ホームページへ>ゆるだら ブログ</a></div></header><nav id=sidebar data-behavior=1><div class=sidebar-container><div class=sidebar-profile><a href=https://ki-ta.blog/#about aria-label=著者についてもっと読む><img class=sidebar-profile-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像></a><h4 class=sidebar-profile-name>kita21</h4><h5 class=sidebar-profile-bio><strong>no rest no life</strong></h5></div><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/ title=Home><i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden=true></i>
+<span class=sidebar-button-desc>ホーム</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/categories title=Categories><i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden=true></i>
+<span class=sidebar-button-desc>カテゴリー</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/tags title=Tags><i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden=true></i>
+<span class=sidebar-button-desc>タグ</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/archives title=Archives><i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden=true></i>
+<span class=sidebar-button-desc>アーカイブ</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://github.com/kita21 target=_blank rel=noopener title=GitHub><i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden=true></i>
+<span class=sidebar-button-desc>GitHub</span></a></li><li class=sidebar-button><a class=sidebar-button-link href="https://www.facebook.com/profile.php?id=100035276171326" target=_blank rel=noopener title=Facebook><i class="sidebar-button-icon fab fa-lg fa-facebook" aria-hidden=true></i>
+<span class=sidebar-button-desc>Facebook</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/index.xml title=RSS><i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden=true></i>
+<span class=sidebar-button-desc>RSS</span></a></li></ul></div></nav><div id=main data-behavior=1 class=hasCoverMetaIn><article class=post id=top><div class="post-header main-content-wrap text-left"><h1 class=post-title>[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編</h1><div class="postShorten-meta post-meta"><time datetime=2023-05-06T00:00:00Z>5月 6, 2023</time></div></div><div class="post-content markdown"><div class=main-content-wrap><h1 id=table-of-contents>目次</h1><nav id=TableOfContents><ul><li><a href=#introduction>Introduction</a></li><li><a href=#今回作成するもの>今回作成するもの</a><ul><li><a href=#awsリソース>AWSリソース</a></li><li><a href=#cfn相関図>CFn相関図</a></li></ul></li><li><a href=#handson>HandsOn</a><ul><li><a href=#アクセスログを保存するs3作成>アクセスログを保存するS3作成</a></li><li><a href=#secretsmanager>SecretsManager</a></li><li><a href=#alb>ALB</a></li><li><a href=#cloudfront>CloudFront</a></li></ul></li><li><a href=#終わりに>終わりに</a></li><li><a href=#参考>参考</a></li></ul></nav><h1 id=introduction>Introduction</h1><p>前回でドメインと証明書を設定したので、今回でロードバランサーをやっと作成できます。<br>今回は作成するリソースが多いので少し長いかもしれません。</p><h1 id=今回作成するもの>今回作成するもの</h1><ul><li><a href=https://github.com/kita21/tech-blog-sample/tree/main/020-cfn05-alb-cdn>https://github.com/kita21/tech-blog-sample/tree/main/020-cfn05-alb-cdn</a></li></ul><h2 id=awsリソース>AWSリソース</h2><div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/020/020-aws.png></div><h2 id=cfn相関図>CFn相関図</h2><div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/020/020-cfn-chart.png></div><h1 id=handson>HandsOn</h1><h2 id=アクセスログを保存するs3作成>アクセスログを保存するS3作成</h2><p>ロードバランサーとCloudFrontを作成していくのですが、リソースにアクセスがきた際のアクセスログを保存して置くのは基本です。攻撃された時の調査やユーザーへ提供するサービスであればユーザーの行動の調査などログの使用用途は様々です。必ずログは保存するようにしましょう。
+リソースのログを保存する場所としてS3を作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: s3-bucket. AWS::S3::Bucket&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Common</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ApNortheast1ElbAccountId</span>: <span style=color:#e6db74>&#34;582318560864&#34;</span> <span style=color:#75715e># https://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/enable-access-logging.html</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>S3LogsS3Bucket</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>BucketName</span>: !<span style=color:#ae81ff>Sub ${Project}-s3-logs</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AccessControl</span>: <span style=color:#ae81ff>LogDeliveryWrite</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>OwnershipControls</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>ObjectOwnership</span>: <span style=color:#ae81ff>ObjectWriter</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VersioningConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Suspended</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3Bucket</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>BucketName</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AccessControl</span>: <span style=color:#ae81ff>Private</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>OwnershipControls</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>ObjectOwnership</span>: <span style=color:#ae81ff>ObjectWriter</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VersioningConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Suspended</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LifecycleConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Id</span>: <span style=color:#ae81ff>ExpireAfter90Days</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Enabled</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>ExpirationInDays</span>: <span style=color:#ae81ff>90</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LoggingConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DestinationBucketName</span>: !<span style=color:#ae81ff>Ref S3LogsS3Bucket</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>LogFilePrefix</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs/</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketPolicy</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::BucketPolicy</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Bucket</span>: !<span style=color:#ae81ff>Ref AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>PolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#34;2012-10-17&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>Policy4ALB</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>AWS</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>arn:aws:iam::${ElbAccountId}:root</span>
+</span></span><span style=display:flex><span>                - <span style=color:#f92672>ElbAccountId</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, Common, ApNortheast1ElbAccountId]</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>s3:PutObject</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>${BucketArn}/elb/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>BucketArn</span>: !<span style=color:#ae81ff>GetAtt AwsResourceAccessLogsS3Bucket.Arn</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.Ref AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-name</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.Arn AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt AwsResourceAccessLogsS3Bucket.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketDomainName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.DomainName AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt AwsResourceAccessLogsS3Bucket.DomainName</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-domain-name</span>
+</span></span></code></pre></div><p>スタック名は、<code>s3-bucket</code><br>ポイントは以下になります</p><ul><li>ALBやCloudFrontなどのAWSリソースアクセスログは、AwsResourceAccessLogsS3Bucketに集約させる。
+これは好みですね。自分はバケットが乱立するのが嫌なので１つに集約させます。</li><li>アクセスログのバケットのログは90日間のみ保持。
+これも状況に応じてですね。あまりに長く保持すると値段も膨れ上がるので保存期間は決めた方が良いです。しかし保持期間が短すぎるのも問題なのでちょうど良い間隔にすること良いです。本番運用するなら半年は保持したいですね。</li><li>バケットの操作ログを保存するバケットを作成。
+はいこれも状況に応じて任意にやっていただければ、私は保存できるものは保存したいタイプなので</li><li>ロードバランサーのログ保存を許可するバケットポリシー
+<a href=https://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/enable-access-logging.html>https://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/enable-access-logging.html</a></li><li>バケットのバージョニングはできればやった方がいいですが、データ量が大きくなってしまうので今回は無効化しています。</li></ul><h2 id=secretsmanager>SecretsManager</h2><p>CloudFront経由でしかロードバランサーにアクセスできないようにカスタムヘッダーを付与します。<br>カスタムヘッダーは知られるとロードバランサーに直接アクセスされてしまうので機密情報としてSecretsManagerで管理します。<br>AWS公式の<a href=https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/restrict-access-to-load-balancer.html>Application Load Balancers へのアクセスを制限する</a>を参考にしています。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: secretsmanager. AWS::SecretsManager::Secret&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CloudfrontCustomHeaderName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>CloudFront Custom Header Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>X-Custom-Header</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>NoEcho</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CloudfrontCustomHeaderValue</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>CloudFront Custom Header Value</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>NoEcho</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CFCustomHeader</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::SecretsManager::Secret</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>CloudFront custom headers to limit ALB connections</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>KmsKeyId</span>: <span style=color:#ae81ff>alias/aws/secretsmanager</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>cf-custom-header</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>SecretString</span>: !<span style=color:#ae81ff>Sub &#39;{&#34;CLOUDFRONT_CUSTOM_HEADER_NAME&#34;:&#34;${CloudfrontCustomHeaderName}&#34;,&#34;CLOUDFRONT_CUSTOM_HEADER_VALUE&#34;:&#34;${CloudfrontCustomHeaderValue}&#34;}&#39;</span>
+</span></span></code></pre></div><p>スタック名は<code>secretsmanager</code><br>Parametersの<code>CloudfrontCustomHeaderName</code>と<code>CloudfrontCustomHeaderValue</code>は基本的になんでも良いですが、特定されにくい文字列を入力してください。特にCloudfrontCustomHeaderValueは特定されないようにパスワードと同じレベルで扱ってください。<br>Parametersのプロパティに<code>NoEcho: true</code>があると思いますが、これは入力したパラメータがスタック作成後にマスクされて見えないようになります。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/020/020-cfn-noecho.png></div></p><h2 id=alb>ALB</h2><p>次にロードバランサーを作成していきます。今回作成するロードバランサーはCloudWatchなどでリクエストカウントなどの詳細なメトリクスが見たいためアプリケーションロードバランサーを選択します。<br>また、今回ロードバランサーなどこれから作成するAWSリソースは、命名にプレフィックスを含ませます。その理由は、同じ構成で複数作成する可能性があるからです。<br>Prefixはデフォルトでv1になっているのですが、サイトのリニューアルやリプレイスで環境をまるっと変更するときにインフラリソースも作成し直してroute53で向き先を古いリソースから新しいリソースに変更してリプレイスすることもあるため複製できるようにPrefixを含む命名とディレクトリもPrefixで一階層深くしようかと思います。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-alb. AWS::ElasticLoadBalancingV2::LoadBalancer AWS::ElasticLoadBalancingV2::Listener AWS::ElasticLoadBalancingV2::ListenerRule AWS::ElasticLoadBalancingV2::TargetGroup&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Network And Security Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>VpcId</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>SubnetId</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>SecurityGroup</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>VpcId</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::EC2::VPC::Id</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;VPC for ALB&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>SubnetId</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>List&lt;AWS::EC2::Subnet::Id&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Subnet for ALB</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>SecurityGroup</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>List&lt;AWS::EC2::SecurityGroup::Id&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>SecurityGroup for ALB</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Domain</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Domain name for ALB</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALB</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ElasticLoadBalancingV2::LoadBalancer</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-alb</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>application</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Scheme</span>: <span style=color:#ae81ff>internet-facing</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Subnets</span>: !<span style=color:#ae81ff>Ref SubnetId</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>SecurityGroups</span>: !<span style=color:#ae81ff>Ref SecurityGroup</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LoadBalancerAttributes</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Key</span>: <span style=color:#ae81ff>idle_timeout.timeout_seconds</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: <span style=color:#ae81ff>60</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Key</span>: <span style=color:#ae81ff>access_logs.s3.enabled</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: <span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Key</span>: <span style=color:#ae81ff>access_logs.s3.bucket</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: 
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-name</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Key</span>: <span style=color:#e6db74>&#34;access_logs.s3.prefix&#34;</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Sub elb/${Prefix}/${Prefix}-${Env}-${Project}-alb</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALBHttpsListener</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ElasticLoadBalancingV2::Listener</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Certificates</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>CertificateArn</span>: !<span style=color:#ae81ff>ImportValue acm-arn</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DefaultActions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>fixed-response</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>FixedResponseConfig</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>ContentType</span>: <span style=color:#ae81ff>text/plain</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>MessageBody</span>: <span style=color:#ae81ff>Access denied</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>StatusCode</span>: <span style=color:#ae81ff>403</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LoadBalancerArn</span>: !<span style=color:#ae81ff>Ref ALB</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Port</span>: <span style=color:#ae81ff>443</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Protocol</span>: <span style=color:#ae81ff>HTTPS</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALBHttpsLisnerRule</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ElasticLoadBalancingV2::ListenerRule</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Priority</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ListenerArn</span>: !<span style=color:#ae81ff>Ref ALBHttpsListener</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Actions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>forward</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>TargetGroupArn</span>: !<span style=color:#ae81ff>Ref ALBTG</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Conditions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Field</span>: <span style=color:#ae81ff>host-header</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Values</span>:
+</span></span><span style=display:flex><span>            - !<span style=color:#ae81ff>Sub ${Domain}</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Field</span>: <span style=color:#ae81ff>http-header</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>HttpHeaderConfig</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>HttpHeaderName</span>: <span style=color:#e6db74>&#34;{{resolve:secretsmanager:cf-custom-header:SecretString:CLOUDFRONT_CUSTOM_HEADER_NAME}}&#34;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Values</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#e6db74>&#34;{{resolve:secretsmanager:cf-custom-header:SecretString:CLOUDFRONT_CUSTOM_HEADER_VALUE}}&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALBTG</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ElasticLoadBalancingV2::TargetGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-tg</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthCheckIntervalSeconds</span>: <span style=color:#ae81ff>30</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthCheckPath</span>: <span style=color:#ae81ff>/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthCheckPort</span>: <span style=color:#ae81ff>traffic-port</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthCheckProtocol</span>: <span style=color:#ae81ff>HTTP</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthCheckTimeoutSeconds</span>: <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthyThresholdCount</span>: <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>UnhealthyThresholdCount</span>: <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Matcher</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>HttpCode</span>: <span style=color:#ae81ff>200</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Port</span>: <span style=color:#ae81ff>80</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Protocol</span>: <span style=color:#ae81ff>HTTP</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>TargetGroupAttributes</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Key</span>: <span style=color:#ae81ff>deregistration_delay.timeout_seconds</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: <span style=color:#ae81ff>30</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>TargetType</span>: <span style=color:#ae81ff>instance</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VpcId</span>: !<span style=color:#ae81ff>Ref VpcId</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALBDNSName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::ElasticLoadBalancingV2::LoadBalancer.DNSName</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ALB.DNSName</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-alb-dns</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALBName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::ElasticLoadBalancingV2::LoadBalancer.LoadBalancerName</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ALB.LoadBalancerName</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-alb-name</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ALBTGArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::ElasticLoadBalancingV2::TargetGroup.Ref</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref ALBTG</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-tg-arn</span>
+</span></span></code></pre></div><p>ParametersのPrefixはデフォルトにするためスタック名は<code>v1-dev-alb</code><br>VpcId・SubnetId・SecurityGroupはImportValueではなくParametersで選択できるようにしました。前の記事で作成したAWSリソースを選択してください。
+SubnetIdは、PublicSubnetを選択してください。SecurityGroupはロードバランサー用を選択してください。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/020/020-cfn-alb-parameters.png></div>作成した後のALBのリスナールールは下記の画像になります。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/020/020-alb-listener-rule.png></div>これでもしロードバランサーのDNS名とipが漏れても403でアクセス拒否できます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ curl -ik https://v1-dev-example-alb-1528051662.ap-northeast-1.elb.amazonaws.com
+</span></span><span style=display:flex><span>HTTP/2 <span style=color:#ae81ff>403</span> 
+</span></span><span style=display:flex><span>server: awselb/2.0
+</span></span><span style=display:flex><span>date: Sat, <span style=color:#ae81ff>06</span> May <span style=color:#ae81ff>2023</span> 04:32:08 GMT
+</span></span><span style=display:flex><span>content-type: text/plain; charset<span style=color:#f92672>=</span>utf-8
+</span></span><span style=display:flex><span>content-length: <span style=color:#ae81ff>13</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Access denied
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ curl -ik https://54.64.156.106
+</span></span><span style=display:flex><span>HTTP/2 <span style=color:#ae81ff>403</span> 
+</span></span><span style=display:flex><span>server: awselb/2.0
+</span></span><span style=display:flex><span>date: Sat, <span style=color:#ae81ff>06</span> May <span style=color:#ae81ff>2023</span> 04:33:00 GMT
+</span></span><span style=display:flex><span>content-type: text/plain; charset<span style=color:#f92672>=</span>utf-8
+</span></span><span style=display:flex><span>content-length: <span style=color:#ae81ff>13</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Access denied
+</span></span></code></pre></div><h2 id=cloudfront>CloudFront</h2><p>次にCDNのCloudFrontを作成していきます。これもPrefix込みの命名で作成していきます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-cf. AWS::CloudFront::Distribution&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Resource Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Domain</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>ACM</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Resorce prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Domain</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>CloudFront DomainAliases</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ACM</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>us-east-1 ACM ARN</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>arn:aws:acm:us-east-1:xxxxxxxxxxxx:certificate/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>common</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>CloudFrontHostedZoneId</span>: <span style=color:#ae81ff>Z2FDTNDATAQYW2</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>dev</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ManagedRequestPolicyAllViewer</span>: <span style=color:#ae81ff>216adef6-5c7f-47e4-b989-5492eafa07d3</span> <span style=color:#75715e># https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ManagedCachePolicyCachingDisabled</span>: <span style=color:#ae81ff>4135ea2d-6df8-44a3-9df3-4b5a84be39ad</span> <span style=color:#75715e># https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>prd</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ManagedRequestPolicyAllViewer</span>: <span style=color:#ae81ff>216adef6-5c7f-47e4-b989-5492eafa07d3</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ManagedCachePolicyCachingDisabled</span>: <span style=color:#ae81ff>4135ea2d-6df8-44a3-9df3-4b5a84be39ad</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CFDistribution</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::CloudFront::Distribution</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DistributionConfig</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Comment</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-cf</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Aliases</span>:
+</span></span><span style=display:flex><span>          - !<span style=color:#ae81ff>Ref Domain</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Origins</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>DomainName</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-alb-dns</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Id</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>CustomOriginConfig</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>HTTPSPort</span>: <span style=color:#ae81ff>443</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>OriginProtocolPolicy</span>: <span style=color:#ae81ff>https-only</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>OriginCustomHeaders</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>HeaderName</span>: <span style=color:#e6db74>&#34;{{resolve:secretsmanager:cf-custom-header:SecretString:CLOUDFRONT_CUSTOM_HEADER_NAME}}&#34;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>HeaderValue</span>: <span style=color:#e6db74>&#34;{{resolve:secretsmanager:cf-custom-header:SecretString:CLOUDFRONT_CUSTOM_HEADER_VALUE}}&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Enabled</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>HttpVersion</span>: <span style=color:#ae81ff>http2</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>IPV6Enabled</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>PriceClass</span>: <span style=color:#ae81ff>PriceClass_All</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DefaultCacheBehavior</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>TargetOriginId</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>AllowedMethods</span>: [<span style=color:#e6db74>&#34;DELETE&#34;</span>, <span style=color:#e6db74>&#34;GET&#34;</span>, <span style=color:#e6db74>&#34;HEAD&#34;</span>, <span style=color:#e6db74>&#34;OPTIONS&#34;</span>, <span style=color:#e6db74>&#34;PATCH&#34;</span>, <span style=color:#e6db74>&#34;POST&#34;</span>, <span style=color:#e6db74>&#34;PUT&#34;</span>]
+</span></span><span style=display:flex><span>          <span style=color:#f92672>ViewerProtocolPolicy</span>: <span style=color:#ae81ff>redirect-to-https</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>CachePolicyId</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, ManagedCachePolicyCachingDisabled]</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>OriginRequestPolicyId</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, ManagedRequestPolicyAllViewer]</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ViewerCertificate</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>AcmCertificateArn</span>: !<span style=color:#ae81ff>Ref ACM</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>SslSupportMethod</span>: <span style=color:#ae81ff>sni-only</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>MinimumProtocolVersion</span>: <span style=color:#ae81ff>TLSv1.2_2021</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Logging</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>IncludeCookies</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Bucket</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-domain-name</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Prefix</span>: !<span style=color:#ae81ff>Sub cloudfront/${Prefix}/${Prefix}-${Env}-${Project}-cf</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>PublicHostedZoneRecord</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Route53::RecordSet</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HostedZoneId</span>: !<span style=color:#ae81ff>ImportValue public-hosted-zone-id</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Ref Domain</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>A</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AliasTarget</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>HostedZoneId</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, common, CloudFrontHostedZoneId]</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DNSName</span>: !<span style=color:#ae81ff>GetAtt CFDistribution.DomainName</span>
+</span></span></code></pre></div><p>スタック名は<code>v1-dev-cf</code><br>ACMはロードバランサーと違いParametersで指定します。これは、<a href=https://ki-ta.blog/019-cfn04-domain/>ドメイン編</a>にも記載した通り別のリージョンで作成したスタックは参照できないため手動で指定する必要があります。CloudFrontはバージニア北部のACMが必要なためARNを直指定します。<br>画像で一様ACMのリソース名はマスクしています。AWSのアカウントIDはこの前公式で機密情報でないと正式に出たので出しちゃいます。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/020/020-us-east-1-acm.png></div>キャッシュポリシーは、キャッシュしないように<a href=https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html>CachingDisabled</a>を選択。リクエストポリシーは、<a href=https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html>AllViewer</a>を選択します。<br>また、CloudFrontとロードバランサーは、https(443)のみしか許可しないようにしているためビヘイビアで強制的にhttpsリダイレクトする設定をしています。<br>cf.yamlでroute53のリソースを作成しているのですが、Prefixがあるためroute53.yamlで管理するのが困難なため同じテンプレート内で作成します。<br>CloudFrontをCFnでRoute53のレコードを作成するときは、HostedZoneIdに<a href=https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/quickref-route53.html>Z2FDTNDATAQYW2</a>を指定します。<br>これでリクエストの通り道は作成できました！ただサーバーはまだ作成していないためリクエストすると503のレスポンスが返ってきます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ curl -i https://looseller.com
+</span></span><span style=display:flex><span>HTTP/2 <span style=color:#ae81ff>503</span> 
+</span></span><span style=display:flex><span>content-type: text/html
+</span></span><span style=display:flex><span>content-length: <span style=color:#ae81ff>162</span>
+</span></span><span style=display:flex><span>server: awselb/2.0
+</span></span><span style=display:flex><span>date: Sat, <span style=color:#ae81ff>06</span> May <span style=color:#ae81ff>2023</span> 14:24:41 GMT
+</span></span><span style=display:flex><span>x-cache: Error from cloudfront
+</span></span><span style=display:flex><span>via: 1.1 7697ece088dd82b674ad39d943b690c8.cloudfront.net <span style=color:#f92672>(</span>CloudFront<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>x-amz-cf-pop: NRT12-C3
+</span></span><span style=display:flex><span>x-amz-cf-id: kQEq8oR1crwuWNrfrhIxo1byHjk86oFypYuOkFW0IV17kX6T1HCRrA<span style=color:#f92672>==</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>&lt;html&gt;
+</span></span><span style=display:flex><span>&lt;head&gt;&lt;title&gt;503 Service Temporarily Unavailable&lt;/title&gt;&lt;/head&gt;
+</span></span><span style=display:flex><span>&lt;body&gt;
+</span></span><span style=display:flex><span>&lt;center&gt;&lt;h1&gt;503 Service Temporarily Unavailable&lt;/h1&gt;&lt;/center&gt;
+</span></span><span style=display:flex><span>&lt;/body&gt;
+</span></span><span style=display:flex><span>&lt;/html&gt;
+</span></span></code></pre></div><h1 id=終わりに>終わりに</h1><p>今回は結構CFnを記載しました。Prefixで急にテンプレートを分け始めたので「なんで？」って思った方もいらっしゃるかもしれません。ただAWSを運用していく上で上記のような切り分けが良い方向になるのではないかなと思っています。最初に運用は考えないって言ってたじゃないかって思った方申し訳ございません_(_(┐･ω･)┐<br>次はECS周りのコンテナ部分を作成していきます。次もボリュームが多いため頑張ってみていただけると嬉しいです。</p><h1 id=参考>参考</h1><ul><li><a href=https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html>AWS / 管理キャッシュポリシーの使用</a></li><li><a href=https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html>AWS / Using the managed origin request policies</a></li><li><a href=https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/quickref-route53.html>AWS / Route 53 テンプレートスニペット</a></li><li><a href=https://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/enable-access-logging.html>AWS / Application Load Balancer のアクセスログを有効にする</a></li><li><a href=https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/restrict-access-to-load-balancer.html>AWS / Application Load Balancers へのアクセスを制限する</a></li><li><a href=https://dev.classmethod.jp/articles/cloudfront-access-log-dont-choose-no-acl-s3-bucket/>DevelopersIO / CloudFrontのアクセスログ保存用S3バケットにはACL有効化が必要なので注意しよう</a></li></ul></div></div><div id=post-footer class="post-footer main-content-wrap"><div class=post-footer-tags><span class="text-color-light text-small">タグ</span><br><a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/aws/>AWS</a>
+<a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/cloudformation/>cloudformation</a></div><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/019-cfn04-domain/ data-tooltip="[CloudFormation] CFnで環境作り完全版 Part4. ドメイン編" aria-label="前: [CloudFormation] CFnで環境作り完全版 Part4. ドメイン編"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></article><footer id=footer class=main-content-wrap><span class=copyrights>&copy; 2023 <a href=https://github.com/kita21>kita21</a>. All Rights Reserved</span></footer></div><div id=bottom-bar class=post-bottom-bar data-behavior=1><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/019-cfn04-domain/ data-tooltip="[CloudFormation] CFnで環境作り完全版 Part4. ドメイン編" aria-label="前: [CloudFormation] CFnで環境作り完全版 Part4. ドメイン編"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></div><div id=about><div id=about-card><div id=about-btn-close><i class="fa fa-times"></i></div><img id=about-card-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像><h4 id=about-card-name>kita21</h4><div id=about-card-bio><strong>no rest no life</strong></div><div id=about-card-job><i class="fa fa-briefcase"></i><br>web engineer</div><div id=about-card-location><i class="fa fa-map-marker-alt"></i><br>Japan</div></div></div><div id=cover style=background-image:url(https://ki-ta.blog/images/cover.jpg)></div><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://ki-ta.blog/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-gE8KAQyFIzV1C9+GZ8TKJHZS2s+n7EjNtC+IMRn1l5+WYJTHOODUM6JSjZhFhqXmc7bG8Av6XXpckA4tYhflnw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/apache.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-EWROca+bote+7Oaaar1F6y74iZj1r1F9rm/ly7o+/FwJopbBaWtsFDmaKoZDd3QiGU2pGacBirHJNivmGLYrow==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/go.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-GDVzAn0wpx1yVtQsRWmFc6PhJiLBPdUic+h4GWgljBh904O3JU10fk9EKNpVyIoPqkFn54rgL2QBG4BmUTMpiQ==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/http.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-UgZlma8NzkrDb/NWgmLIcTrH7i/CSnLLDRFqCSNF5NGPpjKmzyM25qcoXGOup8+cDakKyaiTDd7N4dyH4YT+IA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/less.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-lot9koe73sfXIrUvIPM/UEhuMciN56RPyBdOyZgfO53P2lkWyyXN7J+njcxIIBRV+nVDQeiWtiXg+bLAJZDTfg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/nginx.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-Zd3e7XxHP00TD0Imr0PIfeM0fl0v95kMWuhyAS3Wn1UTSXTkz0OhtRgBAr4JlmADRgiXr4x7lpeUdqaGN8xIog==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/puppet.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-qtqDO052iXMSP+5d/aE/jMtL9vIIGvONgTJziC2K/ZIB1yEGa55WVxGE9/08rSQ62EoDifS9SWVGZ7ihSLhzMA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/scss.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-1NmkjnEDnwwwcu28KoQF8vs3oaPFokQHbmbtwGhFfeDsQZtVFI8zW2aE9O8yMYdpdyKV/5blE4pSWw4Z/Sv97w==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/stylus.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-B2wSfruPjr8EJL6IIzQr1eAuDwrsfIfccNf/LCEdxELCgC/S/ZMt/Uvk80aD79m7IqOqW+Sw8nbkvha20yZpzg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/swift.min.js></script>
+<script async crossorigin=anonymous defer fbadminids=100035276171326 integrity="sha512-28oDiQZGKUVN6wQ7PSLPNipOcmkCALXKwOi7bnkyFf8QiMZQxG9EQoy/iiNx6Zxj2cG2SbVa4dXKigQhu7GiFw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/yaml.min.js></script>
+<script>$(document).ready(function(){hljs.configure({classPrefix:"",useBR:!1}),$("pre.code-highlight > code, pre > code").each(function(e,t){$(this).hasClass("codeblock")||$(this).addClass("codeblock"),hljs.highlightBlock(t)})})</script></body></html>
