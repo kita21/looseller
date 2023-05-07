@@ -1,0 +1,572 @@
+<!doctype html><html lang=ja><head><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編","datePublished":"2023-05-07T00:00:00Z","dateModified":"2023-05-07T00:00:00Z","author":{"@type":"Person","name":"kita21","image":"https://ki-ta.blog/images/avatar.png"},"mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/ki-ta.blog\/021-cfn06-container\/"},"publisher":{"@type":"Organization","name":"ゆるだら ブログ","logo":{"@type":"ImageObject","url":"https://ki-ta.blog/images/avatar.png"}},"description":"CloudFormationで環境作り完全版 Part6. ECSのコンテナでサーバー構築。EC2版","keywords":[]}</script><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=generator content="Hugo 0.111.3 with theme Tranquilpeak 0.5.3-BETA"><meta name=author content="kita21"><meta name=keywords content><meta name=description content="Creating an Environment with CloudFormation Complete Version Part 6: Container Edition"><meta property="og:description" content="Creating an Environment with CloudFormation Complete Version Part 6: Container Edition"><meta property="og:type" content="article"><meta property="og:title" content="[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編"><meta name=twitter:title content="[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編"><meta property="og:url" content="https://ki-ta.blog/021-cfn06-container/"><meta property="twitter:url" content="https://ki-ta.blog/021-cfn06-container/"><meta property="og:site_name" content="ゆるだら ブログ"><meta property="og:description" content="Creating an Environment with CloudFormation Complete Version Part 6: Container Edition"><meta name=twitter:description content="Creating an Environment with CloudFormation Complete Version Part 6: Container Edition"><meta property="og:locale" content="ja"><meta property="article:published_time" content="2023-05-07T00:00:00"><meta property="article:modified_time" content="2023-05-07T00:00:00"><meta property="article:tag" content="AWS"><meta property="article:tag" content="cloudformation"><meta name=twitter:card content="summary"><meta property="og:image" content="https://ki-ta.blog/images/avatar.png"><meta property="twitter:image" content="https://ki-ta.blog/images/avatar.png"><title>[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編</title><link rel=icon href=https://ki-ta.blog/images/avatar.png><link rel=canonical href=https://ki-ta.blog/021-cfn06-container/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://ki-ta.blog/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css><script async src="https://www.googletagmanager.com/gtag/js?id=G-VHM9P1Z719"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-VHM9P1Z719",{anonymize_ip:!1})}</script></head><body><div id=blog><header id=header data-behavior=1><i id=btn-open-sidebar class="fa fa-lg fa-bars"></i><div class=header-title><a class=header-title-link href=https://ki-ta.blog/ aria-label=ホームページへ>ゆるだら ブログ</a></div></header><nav id=sidebar data-behavior=1><div class=sidebar-container><div class=sidebar-profile><a href=https://ki-ta.blog/#about aria-label=著者についてもっと読む><img class=sidebar-profile-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像></a><h4 class=sidebar-profile-name>kita21</h4><h5 class=sidebar-profile-bio><strong>no rest no life</strong></h5></div><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/ title=Home><i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden=true></i>
+<span class=sidebar-button-desc>ホーム</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/categories title=Categories><i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden=true></i>
+<span class=sidebar-button-desc>カテゴリー</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/tags title=Tags><i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden=true></i>
+<span class=sidebar-button-desc>タグ</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/archives title=Archives><i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden=true></i>
+<span class=sidebar-button-desc>アーカイブ</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://github.com/kita21 target=_blank rel=noopener title=GitHub><i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden=true></i>
+<span class=sidebar-button-desc>GitHub</span></a></li><li class=sidebar-button><a class=sidebar-button-link href="https://www.facebook.com/profile.php?id=100035276171326" target=_blank rel=noopener title=Facebook><i class="sidebar-button-icon fab fa-lg fa-facebook" aria-hidden=true></i>
+<span class=sidebar-button-desc>Facebook</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/index.xml title=RSS><i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden=true></i>
+<span class=sidebar-button-desc>RSS</span></a></li></ul></div></nav><div id=main data-behavior=1 class=hasCoverMetaIn><article class=post id=top><div class="post-header main-content-wrap text-left"><h1 class=post-title>[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編</h1><div class="postShorten-meta post-meta"><time datetime=2023-05-07T00:00:00Z>5月 7, 2023</time></div></div><div class="post-content markdown"><div class=main-content-wrap><h1 id=table-of-contents>目次</h1><nav id=TableOfContents><ul><li><a href=#introduction>Introduction</a></li><li><a href=#今回作成するもの>今回作成するもの</a><ul><li><a href=#awsリソース>AWSリソース</a></li><li><a href=#cfn相関図>CFn相関図</a></li></ul></li><li><a href=#handson>HandsOn</a><ul><li><a href=#ecsで使用するiam-role>ECSで使用するIAM Role</a></li><li><a href=#ecs-cluster>ECS Cluster</a></li><li><a href=#cloudwatchlogs>CloudWatchLogs</a></li><li><a href=#ecs-taskdefinition>ECS TaskDefinition</a></li><li><a href=#ecs-service>ECS Service</a></li></ul></li><li><a href=#終わりに>終わりに</a></li><li><a href=#参考>参考</a></li></ul></nav><h1 id=introduction>Introduction</h1><p>この記事ではコンテナサービスであるECSを使用してWebサーバーを構築します。今回も前回と同じく多くのCFnを作成するため長くなります。頑張ってみていただけると嬉しいです。</p><h1 id=今回作成するもの>今回作成するもの</h1><ul><li><a href=https://github.com/kita21/tech-blog-sample/tree/main/021-cfn06-container>https://github.com/kita21/tech-blog-sample/tree/main/021-cfn06-container</a></li></ul><h2 id=awsリソース>AWSリソース</h2><div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/021/021-aws.png></div><h2 id=cfn相関図>CFn相関図</h2><div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/021/021-cfn-chart.png></div><h1 id=handson>HandsOn</h1><h2 id=ecsで使用するiam-role>ECSで使用するIAM Role</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml(modify)
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span></code></pre></div><pre tabindex=0><code class=language-yamo data-lang=yamo>AWSTemplateFormatVersion: &#34;2010-09-09&#34;
+Description: &#34;stackName: iam-role. AWS::IAM::Role AWS::IAM::InstanceProfile&#34;
+
+Resources:
+  CloudTrailRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: cloudtrail-role
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: &#39;2012-10-17&#39;
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: cloudtrail-policy
+          PolicyDocument:
+            Version: &#39;2012-10-17&#39;
+            Statement:
+              - Sid: CloudWatchPutPolicy
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+
+  ECSInstanceProfileRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ecs-instance-profile-role
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: &#39;2012-10-17&#39;
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+
+  ECSInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref ECSInstanceProfileRole
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: task-execution-role
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: &#39;2012-10-17&#39;
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+Outputs:
+  CloudTrailRoleArn:
+    Description: Output Export AWS::IAM::Role.Arn CloudTrailRole
+    Value: !GetAtt CloudTrailRole.Arn
+    Export:
+      Name: cloudtrail-role-arn
+  ECSInstanceProfileArn:
+    Description: Output Export AWS::IAM::InstanceProfile.Arn ECSInstanceProfile
+    Value: !GetAtt ECSInstanceProfile.Arn
+    Export:
+      Name: ecs-instance-profile-arn
+  TaskExecutionRoleArn:
+    Description: Output Export AWS::IAM::Role.Arn TaskExecutionRole
+    Value: !GetAtt TaskExecutionRole.Arn
+    Export:
+      Name: task-execution-role-arn
+</code></pre><p>ECSのコンテナインスタンスのIAMロールである<code>ECSInstanceProfile</code>とタスクを実行するためのIAMロールである<code>TaskExecutionRole</code>の2つを作成します。
+ECSInstanceProfileは、<a href=https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/instance_IAM_role.html>Amazon ECS コンテナインスタンスの IAM ロール</a>を参考にしました。今回は、EC2で構築するECSのためコンテナインスタンスロールを必要としますが、Fargateの場合は必要ないみたいです。<br>タスク実行ロールのTaskExecutionRoleはタスク定義の作成で使用します。<br>各ECSロールの解説は、<a href=https://qiita.com/tmiki/items/25473b8975f8a1095c0a>【ECS】ECSに関するIAM Roleを整理する【AWS】</a>をご覧ください</p><h2 id=ecs-cluster>ECS Cluster</h2><p>ECSのクラスターを作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-ecs-cluster. AWS::ECS::Cluster AWS::EC2::LaunchTemplate AWS::AutoScaling::AutoScalingGroup&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Network And Security Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>SubnetId</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>SecurityGroup</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>AutoScalingGroup Parameter Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Priority1InstanceType</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Priority2InstanceType</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Priority3InstanceType</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>AsgMaxSize</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>AsgMinSize</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>AsgDesiredSize</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>AsgOnDemandBase</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>AsgOnDemandPercentage</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>SubnetId</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>List&lt;AWS::EC2::Subnet::Id&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Subnet for ECSInstance</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>SecurityGroup</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>List&lt;AWS::EC2::SecurityGroup::Id&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>SecurityGroup for ECSInstance</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Priority1InstanceType</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Allowed ECS InstanceType. priority 1</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>t3.micro, t2.micro, t3.small]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Priority2InstanceType</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Allowed ECS InstanceType. priority 2</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>t3.micro, t2.micro, t3.small]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Priority3InstanceType</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Allowed ECS InstanceType. priority 3</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>t3.micro, t2.micro, t3.small]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AsgMaxSize</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AutoScaling maximum number of ECSInstance</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AsgMinSize</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AutoScaling minimum number of ECSInstance</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AsgDesiredSize</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AutoScaling desired number of ECSInstance</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AsgOnDemandBase</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;Minimum number of activations on-demand ECSInstance&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AsgOnDemandPercentage</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Percentage of on-demand ECSInstance(0~100%)</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>MaxValue</span>: <span style=color:#ae81ff>100</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>MinValue</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>dev</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>EbsVolume</span>: <span style=color:#ae81ff>32</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AMIId: ami-02378d43835d39ff4 # ecs_agent_version: 1.68.2 / image_version</span>: <span style=color:#ae81ff>2.0.20230214</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>prd</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>EbsVolume</span>: <span style=color:#ae81ff>32</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AMIId: ami-02378d43835d39ff4 # ecs_agent_version: 1.68.2 / image_version</span>: <span style=color:#ae81ff>2.0.20230214</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCluster</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ECS::Cluster</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ClusterName</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-cluster</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSLT</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::EC2::LaunchTemplate</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LaunchTemplateName</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-lt</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LaunchTemplateData</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>SecurityGroupIds</span>: !<span style=color:#ae81ff>Ref SecurityGroup</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>InstanceInitiatedShutdownBehavior</span>: <span style=color:#ae81ff>terminate</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>IamInstanceProfile</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Arn</span>: !<span style=color:#ae81ff>ImportValue ecs-instance-profile-arn</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>BlockDeviceMappings</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>DeviceName</span>: <span style=color:#ae81ff>/dev/xvda</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Ebs</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>VolumeSize</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, EbsVolume]</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>DeleteOnTermination</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>VolumeType</span>: <span style=color:#ae81ff>gp3</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DisableApiTermination</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ImageId</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, AMIId]</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>UserData</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Fn::Base64</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>            - |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              #!/bin/bash
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              echo ECS_CLUSTER=${ECS_CLUSTER} &gt;&gt; /etc/ecs/ecs.config</span>              
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>ECS_CLUSTER</span>: !<span style=color:#ae81ff>Ref ECSCluster</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSASG</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::AutoScaling::AutoScalingGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>UpdatePolicy</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AutoScalingRollingUpdate</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>MaxBatchSize</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>MinInstancesInService</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>PauseTime</span>: <span style=color:#ae81ff>PT2M</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AutoScalingGroupName</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-asg</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>MixedInstancesPolicy</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>InstancesDistribution</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>OnDemandBaseCapacity</span>: !<span style=color:#ae81ff>Ref AsgOnDemandBase</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>OnDemandPercentageAboveBaseCapacity</span>: !<span style=color:#ae81ff>Ref AsgOnDemandPercentage</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>LaunchTemplate</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>LaunchTemplateSpecification</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>LaunchTemplateId</span>: !<span style=color:#ae81ff>Ref ECSLT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Version</span>: !<span style=color:#ae81ff>GetAtt ECSLT.LatestVersionNumber</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Overrides</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>InstanceType</span>: !<span style=color:#ae81ff>Ref Priority1InstanceType</span>
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>InstanceType</span>: !<span style=color:#ae81ff>Ref Priority2InstanceType</span>
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>InstanceType</span>: !<span style=color:#ae81ff>Ref Priority3InstanceType</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>MetricsCollection</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Granularity</span>: <span style=color:#ae81ff>1Minute</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VPCZoneIdentifier</span>: !<span style=color:#ae81ff>Ref SubnetId</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>MinSize</span>: !<span style=color:#ae81ff>Ref AsgMinSize</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>MaxSize</span>: !<span style=color:#ae81ff>Ref AsgMaxSize</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DesiredCapacity</span>: !<span style=color:#ae81ff>Ref AsgDesiredSize</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Tags</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Key</span>: <span style=color:#ae81ff>Name</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-instance</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>PropagateAtLaunch</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSClusterArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::ECS::Cluster.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ECSCluster.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-cluster-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSClusterName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::ECS::Cluster.Ref</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref ECSCluster</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-cluster-name</span>
+</span></span></code></pre></div><p>スタック名は、<code>v1-dev-ecs-cluster</code><br>Parametersの説明は以下になります。</p><ul><li>SubnetId: PrivateなSubnetを選択してください。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/021/021-cfn-parameters-subnet.png></div></li><li>SecurityGroup: ECSインスタンス用のsgを選択<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/021/021-cfn-parameters-sg.png></div></li><li>Priority(x)InstanceType: ECSで立てるEC2のインスタンスタイプです。<br>1~3で立ち上がる優先順位が選択でき、1が一番優先順位が高いです。今回のテンプレートではかなり小さいインスタンスタイプのみ選択できるようにしていますが、場合によって選択できるタイプを増やしていただければ、ただむやみにでかいインスタンスタイプを選択すると莫大な料金の請求がくるため気をつけてください</li><li>AsgMaxSize: AutoScalingで増加するインスタンスの最大数。<br>今回は設定してないので意味をなしていない</li><li>AsgMinSize: AutoScalingで減少するインスタンスの最小数。<br>今回は設定してないので意味をなしていない</li><li>AsgDesiredSize: AutoScalingで希望するインスタンス数。<br>基本的にECSインスタンス数はここに入力した値の数になる</li><li>AsgOnDemandBase: オンデマンドインスタンスの最小数</li><li>AsgOnDemandPercentage: オンデマンドインスタンスの存在パーセンテージ
+AsgOnDemandBaseと調整しながら設定していく。</li></ul><p>今回は100%スポットインスタンスにして料金を抑えたいため、以下の画像の設定にします。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/021/021-cfn-parameters-asg.png></div></p><p>ここでは説明しないですが、AutoScalingの設定は少し複雑なため、AWS公式の<a href=https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html>UpdatePolicy 属性</a>やDevelopersIOの<a href=https://dev.classmethod.jp/articles/autoscalinggroup-cloudformation-updatepolicy/>CloudFormation UpdatePolicyを使用してAuto Scaling Groupの更新を処理する</a>を見てみてください。</p><h2 id=cloudwatchlogs>CloudWatchLogs</h2><p>ECSで動くアプリケーションログを保存するためのCloudWatchLogsを作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-cw-logs. AWS::Logs::LogGroup&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#e6db74>&#34;Environment Name Configuration&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCWLogGroup</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Logs::LogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LogGroupName</span>: !<span style=color:#ae81ff>Sub ecs/${Prefix}-${Env}-${Project}</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RetentionInDays</span>: <span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCWLogGroupName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>:  <span style=color:#ae81ff>Output Export AWS::Logs::LogGroup.Ref ECSCWLogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref ECSCWLogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-cw-loggroup-name</span>
+</span></span></code></pre></div><p>スタック名は、<code>v1-dev-cw-logs</code><br>ログの保存期間は7日間にします。</p><h2 id=ecs-taskdefinition>ECS TaskDefinition</h2><p>次にタスク定義を作成します。<br>タスク定義は設定項目がかなり多いので今回は必要最低限の項目のみ記載します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml(new)
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-ecs-task-def. AWS::ECS::TaskDefinition&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>dev</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cpu</span>: <span style=color:#ae81ff>256</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Memory</span>: <span style=color:#ae81ff>516</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>prd</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cpu</span>: <span style=color:#ae81ff>256</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Memory</span>: <span style=color:#ae81ff>516</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>TaskDefinition</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ECS::TaskDefinition</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Family</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-task</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RuntimePlatform</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CpuArchitecture</span>: <span style=color:#ae81ff>X86_64</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RequiresCompatibilities</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>EC2</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cpu</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Cpu]</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Memory</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Memory]</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ExecutionRoleArn</span>: !<span style=color:#ae81ff>ImportValue task-execution-role-arn</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ContainerDefinitions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-container</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Cpu</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Cpu]</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Memory</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Memory]</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Image</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecr-uri</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>PortMappings</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>ContainerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>HostPort</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Protocol</span>: <span style=color:#ae81ff>tcp</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Essential</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>LogConfiguration</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>LogDriver</span>: <span style=color:#ae81ff>awslogs</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Options</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>awslogs-group</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-cw-loggroup-name</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>awslogs-region</span>: <span style=color:#ae81ff>ap-northeast-1</span>
+</span></span></code></pre></div><p>スタック名は、<code>v1-dev-ecs-task-def</code><br>コンテナのイメージは、まだGithubからコードを取ってくるリソースを作成していないため一時的にnginxの最新イメージを指定します。</p><h2 id=ecs-service>ECS Service</h2><p>ECSのタスク定義を作成したので、次にそれを使用してコンテナを立ち上げるECS Serviceを作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml(new)
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-ecs-service. AWS::ECS::Service&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#e6db74>&#34;Environment Name Configuration&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#e6db74>&#34;ECS Service Parameter Configuration&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>DesiredCount</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>DesiredCount</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>ECS Service task DesiredCount</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>MaximumPercent</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>ECS Service task max percentage</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>100</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>MinimumHealthyPercent</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Number</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>ECS Service task min percentage</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSService</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ECS::Service</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ServiceName</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-service</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cluster</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-cluster-arn</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DeploymentConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>MaximumPercent</span>: !<span style=color:#ae81ff>Ref MaximumPercent</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>MinimumHealthyPercent</span>: !<span style=color:#ae81ff>Ref MinimumHealthyPercent</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DesiredCount</span>: !<span style=color:#ae81ff>Ref DesiredCount</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>HealthCheckGracePeriodSeconds</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LaunchType</span>: <span style=color:#ae81ff>EC2</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LoadBalancers</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>TargetGroupArn</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-tg-arn</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>ContainerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>ContainerName</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-container</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>SchedulingStrategy</span>: <span style=color:#ae81ff>REPLICA</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>TaskDefinition</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-task</span> <span style=color:#75715e># リビジョンで固定したくないためImportValueを使用しない</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DeploymentController</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>ECS</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSServiceArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>:  <span style=color:#ae81ff>Output Export AWS::ECS::Service.Ref ECSService</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref ECSService</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-service-name</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSServiceName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>:  <span style=color:#ae81ff>Output Export AWS::ECS::Service.Ref ECSService</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ECSService.Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-service-arn</span>
+</span></span></code></pre></div><p>スタック名は、<code>v1-dev-ecs-service</code><br>ECS Serviceでのポイントは、DeploymentConfigurationです。この値はデプロイ時やリビジョン変更時にタスクをどの程度まで増減させるか決める設定になります。通常運用では半分まで減少を許容し最大で2倍増加することを求める設定をします(Max: 200, Min: 50)。今回はタスクが入れ替わる際、タスクが0になってよい設定にするのでMax: 100, Min: 0にします。<br>また、TaskDefinitionはImportValueでARNを利用しようとするとリビジョンも指定しないといけないのでSub関数でリビジョンは指定しないようにして最新のリビジョンで動くようにします。</p><p>これでnginxのコンテナが立ちました。
+アクセスしてみましょう。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ curl https://looseller.com
+</span></span><span style=display:flex><span>&lt;!DOCTYPE html&gt;
+</span></span><span style=display:flex><span>&lt;html&gt;
+</span></span><span style=display:flex><span>&lt;head&gt;
+</span></span><span style=display:flex><span>&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+</span></span><span style=display:flex><span>&lt;style&gt;
+</span></span><span style=display:flex><span>html <span style=color:#f92672>{</span> color-scheme: light dark; <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>body <span style=color:#f92672>{</span> width: 35em; margin: <span style=color:#ae81ff>0</span> auto;
+</span></span><span style=display:flex><span>font-family: Tahoma, Verdana, Arial, sans-serif; <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>&lt;/style&gt;
+</span></span><span style=display:flex><span>&lt;/head&gt;
+</span></span><span style=display:flex><span>&lt;body&gt;
+</span></span><span style=display:flex><span>&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;
+</span></span><span style=display:flex><span>&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+</span></span><span style=display:flex><span>working. Further configuration is required.&lt;/p&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>&lt;p&gt;For online documentation and support please refer to
+</span></span><span style=display:flex><span>&lt;a href<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.org/&#34;</span>&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+</span></span><span style=display:flex><span>Commercial support is available at
+</span></span><span style=display:flex><span>&lt;a href<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.com/&#34;</span>&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>&lt;p&gt;&lt;em&gt;Thank you <span style=color:#66d9ef>for</span> using nginx.&lt;/em&gt;&lt;/p&gt;
+</span></span><span style=display:flex><span>&lt;/body&gt;
+</span></span><span style=display:flex><span>&lt;/html&gt;
+</span></span></code></pre></div><p>ブラウザだと画像のような画面になります。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/021/021-nginx.png></div></p><h1 id=終わりに>終わりに</h1><p>Webサービスが動くところまで作成できました。ECSサービスだけでも多くのサービスがあるため初めて触れる人は理解が大変だと思いますが、構築して上で理解できていくと思うので根気強くやっていただければと思います。<br>ついに次の記事で一旦最後になります。ゴールデンウィークでCFnの記事を書き切ろうと持って思っていましたが、ちょっとオーバーしそうです&mldr;</p><h1 id=参考>参考</h1><ul><li><a href=https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html>AWS / UpdatePolicy 属性</a></li><li><a href=https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/instance_IAM_role.html>AWS / Amazon ECS コンテナインスタンスの IAM ロール</a></li><li><a href=https://docs.aws.amazon.com/AmazonECS/latest/developerguide/instance_IAM_role.html#instance-iam-role-verify>AWS / Amazon ECS container instance IAM role</a></li><li><a href=https://dev.classmethod.jp/articles/autoscalinggroup-cloudformation-updatepolicy/>DevelopersIO / CloudFormation UpdatePolicyを使用してAuto Scaling Groupの更新を処理する</a></li><li><a href=https://dev.classmethod.jp/articles/ssm-session-manager-release/>DevelopersIO / SSH不要時代がくるか!?AWS Systems Manager セッションマネージャーがリリースされました!</a></li><li><a href=https://qiita.com/tmiki/items/25473b8975f8a1095c0a>Qiita / 【ECS】ECSに関するIAM Roleを整理する【AWS】</a></li></ul></div></div><div id=post-footer class="post-footer main-content-wrap"><div class=post-footer-tags><span class="text-color-light text-small">タグ</span><br><a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/aws/>AWS</a>
+<a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/cloudformation/>cloudformation</a></div><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/020-cfn05-alb-cdn/ data-tooltip="[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編" aria-label="前: [CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></article><footer id=footer class=main-content-wrap><span class=copyrights>&copy; 2023 <a href=https://github.com/kita21>kita21</a>. All Rights Reserved</span></footer></div><div id=bottom-bar class=post-bottom-bar data-behavior=1><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/020-cfn05-alb-cdn/ data-tooltip="[CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編" aria-label="前: [CloudFormation] CFnで環境作り完全版 Part5. ロードバランサー, CDN編"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></div><div id=about><div id=about-card><div id=about-btn-close><i class="fa fa-times"></i></div><img id=about-card-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像><h4 id=about-card-name>kita21</h4><div id=about-card-bio><strong>no rest no life</strong></div><div id=about-card-job><i class="fa fa-briefcase"></i><br>web engineer</div><div id=about-card-location><i class="fa fa-map-marker-alt"></i><br>Japan</div></div></div><div id=cover style=background-image:url(https://ki-ta.blog/images/cover.jpg)></div><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://ki-ta.blog/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-gE8KAQyFIzV1C9+GZ8TKJHZS2s+n7EjNtC+IMRn1l5+WYJTHOODUM6JSjZhFhqXmc7bG8Av6XXpckA4tYhflnw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/apache.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-EWROca+bote+7Oaaar1F6y74iZj1r1F9rm/ly7o+/FwJopbBaWtsFDmaKoZDd3QiGU2pGacBirHJNivmGLYrow==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/go.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-GDVzAn0wpx1yVtQsRWmFc6PhJiLBPdUic+h4GWgljBh904O3JU10fk9EKNpVyIoPqkFn54rgL2QBG4BmUTMpiQ==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/http.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-UgZlma8NzkrDb/NWgmLIcTrH7i/CSnLLDRFqCSNF5NGPpjKmzyM25qcoXGOup8+cDakKyaiTDd7N4dyH4YT+IA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/less.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-lot9koe73sfXIrUvIPM/UEhuMciN56RPyBdOyZgfO53P2lkWyyXN7J+njcxIIBRV+nVDQeiWtiXg+bLAJZDTfg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/nginx.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-Zd3e7XxHP00TD0Imr0PIfeM0fl0v95kMWuhyAS3Wn1UTSXTkz0OhtRgBAr4JlmADRgiXr4x7lpeUdqaGN8xIog==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/puppet.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-qtqDO052iXMSP+5d/aE/jMtL9vIIGvONgTJziC2K/ZIB1yEGa55WVxGE9/08rSQ62EoDifS9SWVGZ7ihSLhzMA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/scss.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-1NmkjnEDnwwwcu28KoQF8vs3oaPFokQHbmbtwGhFfeDsQZtVFI8zW2aE9O8yMYdpdyKV/5blE4pSWw4Z/Sv97w==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/stylus.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-B2wSfruPjr8EJL6IIzQr1eAuDwrsfIfccNf/LCEdxELCgC/S/ZMt/Uvk80aD79m7IqOqW+Sw8nbkvha20yZpzg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/swift.min.js></script>
+<script async crossorigin=anonymous defer fbadminids=100035276171326 integrity="sha512-28oDiQZGKUVN6wQ7PSLPNipOcmkCALXKwOi7bnkyFf8QiMZQxG9EQoy/iiNx6Zxj2cG2SbVa4dXKigQhu7GiFw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/yaml.min.js></script>
+<script>$(document).ready(function(){hljs.configure({classPrefix:"",useBR:!1}),$("pre.code-highlight > code, pre > code").each(function(e,t){$(this).hasClass("codeblock")||$(this).addClass("codeblock"),hljs.highlightBlock(t)})})</script></body></html>
