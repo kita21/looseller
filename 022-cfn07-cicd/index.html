@@ -1,0 +1,931 @@
+<!doctype html><html lang=ja><head><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[CloudFormation] CFnで環境作り完全版 Part7. CICD編","datePublished":"2023-05-08T00:00:00Z","dateModified":"2023-05-08T00:00:00Z","author":{"@type":"Person","name":"kita21","image":"https://ki-ta.blog/images/avatar.png"},"mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/ki-ta.blog\/022-cfn07-cicd\/"},"publisher":{"@type":"Organization","name":"ゆるだら ブログ","logo":{"@type":"ImageObject","url":"https://ki-ta.blog/images/avatar.png"}},"description":"CloudFormationで環境作り完全版 Part7. CodePipelineでCICD構築。アプリケーションはTypescriptで","keywords":[]}</script><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=generator content="Hugo 0.111.3 with theme Tranquilpeak 0.5.3-BETA"><meta name=author content="kita21"><meta name=keywords content><meta name=description content="Creating an Environment with CloudFormation Complete Version Part 7: CICD Edition"><meta property="og:description" content="Creating an Environment with CloudFormation Complete Version Part 7: CICD Edition"><meta property="og:type" content="article"><meta property="og:title" content="[CloudFormation] CFnで環境作り完全版 Part7. CICD編"><meta name=twitter:title content="[CloudFormation] CFnで環境作り完全版 Part7. CICD編"><meta property="og:url" content="https://ki-ta.blog/022-cfn07-cicd/"><meta property="twitter:url" content="https://ki-ta.blog/022-cfn07-cicd/"><meta property="og:site_name" content="ゆるだら ブログ"><meta property="og:description" content="Creating an Environment with CloudFormation Complete Version Part 7: CICD Edition"><meta name=twitter:description content="Creating an Environment with CloudFormation Complete Version Part 7: CICD Edition"><meta property="og:locale" content="ja"><meta property="article:published_time" content="2023-05-08T00:00:00"><meta property="article:modified_time" content="2023-05-08T00:00:00"><meta property="article:tag" content="AWS"><meta property="article:tag" content="cloudformation"><meta name=twitter:card content="summary"><meta property="og:image" content="https://ki-ta.blog/images/avatar.png"><meta property="twitter:image" content="https://ki-ta.blog/images/avatar.png"><title>[CloudFormation] CFnで環境作り完全版 Part7. CICD編</title><link rel=icon href=https://ki-ta.blog/images/avatar.png><link rel=canonical href=https://ki-ta.blog/022-cfn07-cicd/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://ki-ta.blog/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css><script async src="https://www.googletagmanager.com/gtag/js?id=G-VHM9P1Z719"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-VHM9P1Z719",{anonymize_ip:!1})}</script></head><body><div id=blog><header id=header data-behavior=1><i id=btn-open-sidebar class="fa fa-lg fa-bars"></i><div class=header-title><a class=header-title-link href=https://ki-ta.blog/ aria-label=ホームページへ>ゆるだら ブログ</a></div></header><nav id=sidebar data-behavior=1><div class=sidebar-container><div class=sidebar-profile><a href=https://ki-ta.blog/#about aria-label=著者についてもっと読む><img class=sidebar-profile-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像></a><h4 class=sidebar-profile-name>kita21</h4><h5 class=sidebar-profile-bio><strong>no rest no life</strong></h5></div><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/ title=Home><i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden=true></i>
+<span class=sidebar-button-desc>ホーム</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/categories title=Categories><i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden=true></i>
+<span class=sidebar-button-desc>カテゴリー</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/tags title=Tags><i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden=true></i>
+<span class=sidebar-button-desc>タグ</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/archives title=Archives><i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden=true></i>
+<span class=sidebar-button-desc>アーカイブ</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://github.com/kita21 target=_blank rel=noopener title=GitHub><i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden=true></i>
+<span class=sidebar-button-desc>GitHub</span></a></li><li class=sidebar-button><a class=sidebar-button-link href="https://www.facebook.com/profile.php?id=100035276171326" target=_blank rel=noopener title=Facebook><i class="sidebar-button-icon fab fa-lg fa-facebook" aria-hidden=true></i>
+<span class=sidebar-button-desc>Facebook</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/index.xml title=RSS><i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden=true></i>
+<span class=sidebar-button-desc>RSS</span></a></li></ul></div></nav><div id=main data-behavior=1 class=hasCoverMetaIn><article class=post id=top><div class="post-header main-content-wrap text-left"><h1 class=post-title>[CloudFormation] CFnで環境作り完全版 Part7. CICD編</h1><div class="postShorten-meta post-meta"><time datetime=2023-05-08T00:00:00Z>5月 8, 2023</time></div></div><div class="post-content markdown"><div class=main-content-wrap><h1 id=table-of-contents>目次</h1><nav id=TableOfContents><ul><li><a href=#introduction>Introduction</a></li><li><a href=#今回作成するもの>今回作成するもの</a><ul><li><a href=#awsリソース>AWSリソース</a></li><li><a href=#cfn相関図>CFn相関図</a></li></ul></li><li><a href=#handson>HandsOn</a><ul><li><a href=#ecr>ECR</a></li><li><a href=#cloudwatchlogs>CloudWatchLogs</a></li><li><a href=#artifact用のs3>Artifact用のS3</a></li><li><a href=#codepipelineのiam-role>CodePipelineのIAM Role</a></li><li><a href=#codestar>CodeStar</a></li><li><a href=#codepipeline>CodePipeline</a></li><li><a href=#ecsタスク定義の取得イメージをecrに>ECSタスク定義の取得イメージをECRに</a></li><li><a href=#デプロイ用アプリケーションを作成>デプロイ用アプリケーションを作成</a></li></ul></li><li><a href=#かかった金額>かかった金額</a></li><li><a href=#終わりに>終わりに</a></li><li><a href=#参考>参考</a></li></ul></nav><h1 id=introduction>Introduction</h1><h1 id=今回作成するもの>今回作成するもの</h1><ul><li><a href=https://github.com/kita21/tech-blog-sample/tree/main/022-cfn07-cicd>https://github.com/kita21/tech-blog-sample/tree/main/022-cfn07-cicd</a></li></ul><h2 id=awsリソース>AWSリソース</h2><div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/022/022-aws.png></div><h2 id=cfn相関図>CFn相関図</h2><div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/022/022-cfn-chart.png></div><h1 id=handson>HandsOn</h1><h2 id=ecr>ECR</h2><p>アプリケーションをコンテナで動かすためにアプリケーションをイメージ化した物を保存しておく格納場所が必要です。そのためにECS専用のレジストリサービスであるECRを作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-ecr. AWS::ECR::Repository&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>common</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ECRLifecyclePolicy</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          &#34;rules&#34;: [
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;rulePriority&#34;: 1,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;description&#34;: &#34;Delete more than 10 images&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;selection&#34;: {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;tagStatus&#34;: &#34;any&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;countType&#34;: &#34;imageCountMoreThan&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;countNumber&#34;: 10
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              },
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;action&#34;: {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;type&#34;: &#34;expire&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              }
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            }
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          ]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        }</span>        
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECR</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type </span>: <span style=color:#e6db74>&#34;AWS::ECR::Repository&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RepositoryName</span>: !<span style=color:#ae81ff>Sub &#34;${Prefix}/${Env}/${Project}&#34;</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LifecyclePolicy</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>LifecyclePolicyText</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, common, ECRLifecyclePolicy]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECRUri</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::ECS::Cluster.RepositoryUri</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ECR.RepositoryUri</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecr-uri</span>
+</span></span></code></pre></div><p>スタック名は、<code>v1-dev-ecr</code><br>ECRライフサイクルポリシーを設定しています。10イメージだけ残して古い順に削除されるように設定しています。</p><h2 id=cloudwatchlogs>CloudWatchLogs</h2><p>次にCodePipeline中のCodeBuildの実行ログを保存するCloudWatchLogsを作成します</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml(modify)
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-cw-logs. AWS::Logs::LogGroup&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#e6db74>&#34;Environment Name Configuration&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCWLogGroup</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Logs::LogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LogGroupName</span>: !<span style=color:#ae81ff>Sub ecs/${Prefix}-${Env}-${Project}</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RetentionInDays</span>: <span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>DeployCodeBuildCwLogGroup</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Logs::LogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LogGroupName</span>: !<span style=color:#ae81ff>Sub codebuild/${Prefix}-${Env}-${Project}</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RetentionInDays</span>: <span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCWLogGroupName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>:  <span style=color:#ae81ff>Output Export AWS::Logs::LogGroup.Ref ECSCWLogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref ECSCWLogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-cw-loggroup-name</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>DeployCodeBuildCwLogGroupName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>:  <span style=color:#ae81ff>Output Export AWS::Logs::LogGroup.Ref DeployCodeBuildCwLogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref DeployCodeBuildCwLogGroup</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-deploy-codebuild-cw-loggroup-name</span>
+</span></span></code></pre></div><h2 id=artifact用のs3>Artifact用のS3</h2><p>CodePipelineで使用されるアーティファクトを保存するS3バケットを作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml(modify)
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: s3-bucket. AWS::S3::Bucket&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Common</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ApNortheast1ElbAccountId</span>: <span style=color:#e6db74>&#34;582318560864&#34;</span> <span style=color:#75715e># https://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/enable-access-logging.html</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>S3LogsS3Bucket</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>BucketName</span>: !<span style=color:#ae81ff>Sub ${Project}-s3-logs</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AccessControl</span>: <span style=color:#ae81ff>LogDeliveryWrite</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>OwnershipControls</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>ObjectOwnership</span>: <span style=color:#ae81ff>ObjectWriter</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VersioningConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Suspended</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3Bucket</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>BucketName</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AccessControl</span>: <span style=color:#ae81ff>Private</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>OwnershipControls</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>ObjectOwnership</span>: <span style=color:#ae81ff>ObjectWriter</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VersioningConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Suspended</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LifecycleConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Id</span>: <span style=color:#ae81ff>ExpireAfter90Days</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Enabled</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>ExpirationInDays</span>: <span style=color:#ae81ff>90</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LoggingConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DestinationBucketName</span>: !<span style=color:#ae81ff>Ref S3LogsS3Bucket</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>LogFilePrefix</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs/</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketPolicy</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::BucketPolicy</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Bucket</span>: !<span style=color:#ae81ff>Ref AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>PolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#34;2012-10-17&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>Policy4ALB</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>AWS</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>arn:aws:iam::${ElbAccountId}:root</span>
+</span></span><span style=display:flex><span>                - <span style=color:#f92672>ElbAccountId</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, Common, ApNortheast1ElbAccountId]</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>s3:PutObject</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>${BucketArn}/elb/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>BucketArn</span>: !<span style=color:#ae81ff>GetAtt AwsResourceAccessLogsS3Bucket.Arn</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CodePipelineArtifactsS3Bucket</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::S3::Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>BucketName</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AccessControl</span>: <span style=color:#ae81ff>Private</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VersioningConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Suspended</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LifecycleConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Rules</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Id</span>: <span style=color:#ae81ff>ExpireAfter30Days</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>Enabled</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>ExpirationInDays</span>: <span style=color:#ae81ff>30</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LoggingConfiguration</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DestinationBucketName</span>: !<span style=color:#ae81ff>Ref S3LogsS3Bucket</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>LogFilePrefix</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.Ref AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-name</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CodePipelineArtifactsS3BucketName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.Ref CodePipelineArtifactsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref CodePipelineArtifactsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts-s3-bucket-name</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.Arn AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt AwsResourceAccessLogsS3Bucket.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CodePipelineArtifactsS3BucketArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.Arn CodePipelineArtifactsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt CodePipelineArtifactsS3Bucket.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts-s3-bucket-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AwsResourceAccessLogsS3BucketDomainName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::S3::Bucket.DomainName AwsResourceAccessLogsS3Bucket</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt AwsResourceAccessLogsS3Bucket.DomainName</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Project}-aws-resource-access-logs-s3-bucket-domain-name</span>
+</span></span></code></pre></div><p>Outputsも忘れないように記載してください。バケットの中のオブジェクトの保存期限は少なめに30日にしました。デプロイ時に出力されたデータはあまり長期間見ることはないと思うので。</p><h2 id=codepipelineのiam-role>CodePipelineのIAM Role</h2><p>CodePipelineのIAMロールとCodePipeline構築の中で使用するCodeBuildのIAMロールを両方作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml(modify)
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: iam-role. AWS::IAM::Role AWS::IAM::InstanceProfile&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CloudTrailRole</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::IAM::Role</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RoleName</span>: <span style=color:#ae81ff>cloudtrail-role</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/service-role/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AssumeRolePolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Service</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>cloudtrail.amazonaws.com</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>sts:AssumeRole</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>PolicyName</span>: <span style=color:#ae81ff>cloudtrail-policy</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>PolicyDocument</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>CloudWatchPutPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>logs:CreateLogStream</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>logs:PutLogEvents</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSInstanceProfileRole</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::IAM::Role</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RoleName</span>: <span style=color:#ae81ff>ecs-instance-profile-role</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AssumeRolePolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Service</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>ec2.amazonaws.com</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>sts:AssumeRole</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ManagedPolicyArns</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore</span>
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSInstanceProfile</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::IAM::InstanceProfile</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Roles</span>:
+</span></span><span style=display:flex><span>        - !<span style=color:#ae81ff>Ref ECSInstanceProfileRole</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>TaskExecutionRole</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::IAM::Role</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RoleName</span>: <span style=color:#ae81ff>task-execution-role</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/service-role/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AssumeRolePolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Service</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>ecs-tasks.amazonaws.com</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>sts:AssumeRole</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ManagedPolicyArns</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCodeBuildServiceRole</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::IAM::Role</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RoleName</span>: <span style=color:#ae81ff>ecs-codebuild-service-role</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/service-role/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AssumeRolePolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#34;2012-10-17&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Service</span>: <span style=color:#ae81ff>codebuild.amazonaws.com</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>: <span style=color:#ae81ff>sts:AssumeRole</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>PolicyName</span>: <span style=color:#ae81ff>ecs-codebuild-service-policy</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>PolicyDocument</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>S3AccessPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>s3:GetObject</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>s3:PutObject</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>s3:GetObjectVersion</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>:
+</span></span><span style=display:flex><span>                  - !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>                    - <span style=color:#ae81ff>${ArtifactBucket}/*</span>
+</span></span><span style=display:flex><span>                    - <span style=color:#f92672>ArtifactBucket</span>:
+</span></span><span style=display:flex><span>                        <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts-s3-bucket-arn</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>ECRAccessPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:BatchCheckLayerAvailability</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:BatchGetImage</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:CompleteLayerUpload</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:GetAuthorizationToken</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:InitiateLayerUpload</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:PutImage</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:UploadLayerPart</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:CreateRepository</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:GetDownloadUrlForLayer</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>:
+</span></span><span style=display:flex><span>                  - !<span style=color:#ae81ff>Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>ECRAuthPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecr:GetAuthorizationToken</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: <span style=color:#e6db74>&#34;*&#34;</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>SSMGetParameterPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ssm:GetParameters</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>KmsDecryptPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>kms:Decrypt</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>SSMCodeBuildAccessPolicy</span> <span style=color:#75715e># https://docs.aws.amazon.com/ja_jp/codebuild/latest/userguide/session-manager.html</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ssmmessages:CreateControlChannel</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ssmmessages:CreateDataChannel</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ssmmessages:OpenControlChannel</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ssmmessages:OpenDataChannel</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: <span style=color:#e6db74>&#34;*&#34;</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>CWAccessPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>logs:CreateLogGroup</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>logs:CreateLogStream</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>logs:PutLogEvents</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCodePipelineServiceRole</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::IAM::Role</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RoleName</span>: <span style=color:#ae81ff>ecs-codepipeline-service-role</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/service-role/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AssumeRolePolicyDocument</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Principal</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Service</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>codepipeline.amazonaws.com</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>sts:AssumeRole</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>PolicyName</span>: <span style=color:#ae81ff>ecs-codepipeline-service-policy</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>PolicyDocument</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Version</span>: <span style=color:#e6db74>&#39;2012-10-17&#39;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Statement</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>S3AccessPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>s3:GetObject</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>s3:GetObjectVersion</span>
+</span></span><span style=display:flex><span>                  <span style=color:#75715e># - s3:GetBucketVersioning</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>s3:PutObject</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>:
+</span></span><span style=display:flex><span>                  - !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>                    - <span style=color:#ae81ff>${ArtifactBucket}/*</span>
+</span></span><span style=display:flex><span>                    - <span style=color:#f92672>ArtifactBucket</span>:
+</span></span><span style=display:flex><span>                        <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts-s3-bucket-arn</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>ECSAccessPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecs:DescribeServices</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecs:DescribeTaskDefinition</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecs:DescribeTasks</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecs:ListTasks</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecs:RegisterTaskDefinition</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>ecs:UpdateService</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#e6db74>&#34;*&#34;</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>CodeBuildAccessPolicy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>codebuild:StartBuild</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>codebuild:BatchGetBuilds</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>:
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>codestar-connections:UseConnection</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>: !<span style=color:#ae81ff>Sub arn:aws:codestar-connections:${AWS::Region}:${AWS::AccountId}:connection/*</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>Sid</span>: <span style=color:#ae81ff>PassRole</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Effect</span>: <span style=color:#ae81ff>Allow</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Action</span>: <span style=color:#ae81ff>iam:PassRole</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Resource</span>:
+</span></span><span style=display:flex><span>                 - <span style=color:#e6db74>&#34;*&#34;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Condition</span>:
+</span></span><span style=display:flex><span>                  <span style=color:#f92672>StringEqualsIfExists</span>:
+</span></span><span style=display:flex><span>                    <span style=color:#f92672>iam:PassedToService</span>: <span style=color:#ae81ff>ecs-tasks.amazonaws.com</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CloudTrailRoleArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::IAM::Role.Arn CloudTrailRole</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt CloudTrailRole.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>cloudtrail-role-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSInstanceProfileArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::IAM::InstanceProfile.Arn ECSInstanceProfile</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ECSInstanceProfile.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>ecs-instance-profile-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>TaskExecutionRoleArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::IAM::Role.Arn TaskExecutionRole</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt TaskExecutionRole.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>task-execution-role-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCodeBuildServiceRoleArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::IAM::Role.Arn ECSCodeBuildServiceRole</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ECSCodeBuildServiceRole.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>ecs-codebuild-service-role-arn</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSCodePipelineServiceRoleArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::IAM::Role.Arn ECSCodePipelineServiceRole</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt ECSCodePipelineServiceRole.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>ecs-codepipeline-service-role-arn</span>
+</span></span></code></pre></div><p>Parametersが追記されているため注意してください。</p><h2 id=codestar>CodeStar</h2><p>次にCodePipelineとGitHubを疎通するためのリソースであるCodeStarConnectionを作成します。<br>今まではGitHubのアクセストークンを利用してGitHubとの疎通を行なっていましたが、CodeStarConnectionができたことによりアクセストークンを利用しないためトークンのローテーションなしで安全に疎通できるようになりました。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   codestar.yaml(new)
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: codestar. AWS::CodeStarConnections::Connection&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CodeStarGitHubConnection</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::CodeStarConnections::Connection</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ConnectionName</span>: <span style=color:#ae81ff>github-connection</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ProviderType</span>: <span style=color:#ae81ff>GitHub</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CodeStarGitHubConnectionArn</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Output Export AWS::CodeStarConnections::Connection.ConnectionArn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>GetAtt CodeStarGitHubConnection.ConnectionArn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Export</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>codestar-github-connection-arn</span>
+</span></span></code></pre></div><p>スタック名は、<code>codestar</code><br>CodeStarを作成しただけでは、GitHubとの疎通はできていません。下記画像のようになっているので手動で対応が必要になってきます。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/022/022-codestar-pending.png></div>手順を説明しようと思いましたが、やはりDevelopersIOさんが解説してくれていました。<br>→ <a href=https://dev.classmethod.jp/articles/aws-codepipeline-github-connection-v2/>AWS CodePipeline のGitHub への接続(バージョン2)を作成してみた</a></p><h2 id=codepipeline>CodePipeline</h2><p>やっと本命のCodePipelineを構築しようと思います。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   codestar.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span><span style=display:flex><span>      codepipeline.yaml(new)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-codepipeline. AWS::CodeBuild::Project AWS::CodePipeline::Pipeline&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>GitHub Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>GitHubDeployBranch</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>GitHubDeployBranch</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>GitHub deploy branch</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>common</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>GitHubOrganization</span>: <span style=color:#ae81ff>kita21</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>GitHubRepository</span>: <span style=color:#ae81ff>tech-blog-sample </span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSDeployCodeBuildProject</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::CodeBuild::Project</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-deploy-codebuild</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>${Prefix}-${Env}-${Project}-ecs-deploy-codebuild</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ServiceRole</span>: !<span style=color:#ae81ff>ImportValue ecs-codebuild-service-role-arn</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>QueuedTimeoutInMinutes</span>: <span style=color:#ae81ff>30</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>TimeoutInMinutes</span>: <span style=color:#ae81ff>30</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Artifacts</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>CODEPIPELINE</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cache</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>LOCAL</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Modes</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>LOCAL_DOCKER_LAYER_CACHE</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>LogsConfig</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CloudWatchLogs</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>GroupName</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-deploy-codebuild-cw-loggroup-name</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Status</span>: <span style=color:#ae81ff>ENABLED</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Source</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>BuildSpec</span>: <span style=color:#ae81ff>022</span>-<span style=color:#ae81ff>cfn07-cicd/app/buildspec.yml</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>CODEPIPELINE</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Environment</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ComputeType</span>: <span style=color:#ae81ff>BUILD_GENERAL1_SMALL</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Image</span>: <span style=color:#ae81ff>aws/codebuild/amazonlinux2-x86_64-standard:4.0</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>LINUX_CONTAINER</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>PrivilegedMode</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>EnvironmentVariables</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>ENV</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>PLAINTEXT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>PREFIX</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>PLAINTEXT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>PROJECT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>PLAINTEXT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref Project</span>
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>AWS_ACCOUNT_ID</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>PLAINTEXT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref AWS::AccountId</span>
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>AWS_REGION_NAME</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>PLAINTEXT</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref AWS::Region</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ECSDeployCodePipeline</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::CodePipeline::Pipeline</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-codepipeline</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RoleArn</span>: !<span style=color:#ae81ff>ImportValue ecs-codepipeline-service-role-arn</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ArtifactStore</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>S3</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Location</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Project}-codepipeline-artifacts-s3-bucket-name</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Stages</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>Source</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Actions</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>SourceStage</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>ActionTypeId</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Category</span>: <span style=color:#ae81ff>Source</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Owner</span>: <span style=color:#ae81ff>AWS</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Version</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Provider</span>: <span style=color:#ae81ff>CodeStarSourceConnection</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Configuration</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>FullRepositoryId</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#ae81ff>${GitHubOrganization}/${GitHubRepository}</span>
+</span></span><span style=display:flex><span>                  - <span style=color:#f92672>GitHubOrganization</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, common, GitHubOrganization]</span>
+</span></span><span style=display:flex><span>                    <span style=color:#f92672>GitHubRepository</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, common, GitHubRepository]</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>ConnectionArn</span>: !<span style=color:#ae81ff>ImportValue codestar-github-connection-arn</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>BranchName</span>: !<span style=color:#ae81ff>Ref GitHubDeployBranch</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>DetectChanges</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>OutputArtifactFormat</span>: <span style=color:#ae81ff>CODE_ZIP</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>RunOrder</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>OutputArtifacts</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>SourceArtifact</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>Build</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Actions</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>BuildStage</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>ActionTypeId</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Category</span>: <span style=color:#ae81ff>Build</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Owner</span>: <span style=color:#ae81ff>AWS</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Version</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Provider</span>: <span style=color:#ae81ff>CodeBuild</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Configuration</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>ProjectName</span>: !<span style=color:#ae81ff>Ref ECSDeployCodeBuildProject</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>InputArtifacts</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>SourceArtifact</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>OutputArtifacts</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>BuildArtifact</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>RunOrder</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>Deploy</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Actions</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>DeployStage</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>ActionTypeId</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Category</span>: <span style=color:#ae81ff>Deploy</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Owner</span>: <span style=color:#ae81ff>AWS</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Version</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Provider</span>: <span style=color:#ae81ff>ECS</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Configuration</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>ClusterName</span>:
+</span></span><span style=display:flex><span>                  <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-cluster-name</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>ServiceName</span>:
+</span></span><span style=display:flex><span>                  <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-service-name</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>FileName</span>: <span style=color:#ae81ff>imagedefinitions.json</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>InputArtifacts</span>:
+</span></span><span style=display:flex><span>                - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>BuildArtifact</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>RunOrder</span>: <span style=color:#ae81ff>1</span>
+</span></span></code></pre></div><p>スタック名は、<code>v1-dev-codepipeline</code><br>以下にポイントを記載します。</p><ul><li>作成したと同時にCodePipelineが実行されます。<br>buildspec.ymlを記載していないためビルドは失敗しますが、作成と同時に実行されないようにする方法を知っている方いたら教えてください。</li><li>AWS::CodeBuild::Projectの<code>Environment.EnvironmentVariables</code>はCodeBuildで使用される値を入れています。</li><li>AWS::CodeBuild::Projectの<code>Source.BuildSpec</code>は、サンプルリポジトリ用に記載しているためリポジトリに合わせて変更してください。</li><li>AWS::CodePipeline::Pipelineの<code>Stages[0].Actions[0].Configuration.DetectChanges</code>はコミット時にCodePipelineを実行するか決めています。<br>私は他のサンプルコードもコミットするのでfalseにしていますが、GitHubと環境の乖離が発生しないようにtrueにすることをおすすめします。</li><li>DeployはECSに選択しています。他にもいろいろなデプロイ方法がありますが、今回は一番簡単なECSを選択します。</li></ul><h2 id=ecsタスク定義の取得イメージをecrに>ECSタスク定義の取得イメージをECRに</h2><p>前回の記事でECSで動くコンテナのイメージをnginxにしました。今回GitHubから取得したコードで生成したイメージからコンテナを立てるのでイメージを格納するECRから取得するようにします。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   codestar.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml(modify)
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span><span style=display:flex><span>      codepipeline.yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#34;2010-09-09&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#e6db74>&#34;stackName: {Prefix}-{Env}-ecs-task-def. AWS::ECS::TaskDefinition&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>AWS::CloudFormation::Interface</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ParameterGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>Label</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>default</span>: <span style=color:#ae81ff>Environment Name Configuration</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Prefix</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Env</span>
+</span></span><span style=display:flex><span>          - <span style=color:#ae81ff>Project</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Parameters</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Prefix</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>AWS resource version management prefix</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Env</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project environment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>AllowedValues</span>: [<span style=color:#ae81ff>dev, prd]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Project</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>String</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Project Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Default</span>: <span style=color:#ae81ff>example</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Mappings</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>EnvMaps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>dev</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cpu</span>: <span style=color:#ae81ff>256</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Memory</span>: <span style=color:#ae81ff>516</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>prd</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cpu</span>: <span style=color:#ae81ff>256</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Memory</span>: <span style=color:#ae81ff>516</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>TaskDefinition</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::ECS::TaskDefinition</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Family</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-task</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RuntimePlatform</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CpuArchitecture</span>: <span style=color:#ae81ff>X86_64</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RequiresCompatibilities</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>EC2</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Cpu</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Cpu]</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Memory</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Memory]</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ExecutionRoleArn</span>: !<span style=color:#ae81ff>ImportValue task-execution-role-arn</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ContainerDefinitions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Name</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-container</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Cpu</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Cpu]</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Memory</span>: !<span style=color:#ae81ff>FindInMap [EnvMaps, !Ref Env, Memory]</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Image</span>: !<span style=color:#ae81ff>Sub</span>
+</span></span><span style=display:flex><span>            - <span style=color:#ae81ff>${URI}:latest</span>
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>URI</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecr-uri</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>PortMappings</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>ContainerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>HostPort</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>Protocol</span>: <span style=color:#ae81ff>tcp</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Essential</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>LogConfiguration</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>LogDriver</span>: <span style=color:#ae81ff>awslogs</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Options</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>awslogs-group</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>Fn::ImportValue</span>: !<span style=color:#ae81ff>Sub ${Prefix}-${Env}-${Project}-ecs-cw-loggroup-name</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>awslogs-region</span>: <span style=color:#ae81ff>ap-northeast-1</span>
+</span></span></code></pre></div><p><code>ContainerDefinitions[0].Image</code>を変更しました。変更は一行なので大きな変更ではないです。<br>これでAWSリソースは完成です！</p><h2 id=デプロイ用アプリケーションを作成>デプロイ用アプリケーションを作成</h2><p>AWSリソースは完成したので、次はデプロイするアプリケーションを作成します。今回はただhello worldをレスポンスで返すだけのアプリケーションを作成します。筆者はTypescriptばかり書いているので今回もTypescriptで作成します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>.pre-commit-config.yaml
+</span></span><span style=display:flex><span>cloudformation
+</span></span><span style=display:flex><span> L iam-user.yaml
+</span></span><span style=display:flex><span>   iam-role.yaml
+</span></span><span style=display:flex><span>   cloudtrail.yaml
+</span></span><span style=display:flex><span>   vpc.yaml
+</span></span><span style=display:flex><span>   subnet.yaml
+</span></span><span style=display:flex><span>   sg.yaml
+</span></span><span style=display:flex><span>   route53.yaml
+</span></span><span style=display:flex><span>   acm.yaml
+</span></span><span style=display:flex><span>   s3-bucket.yaml
+</span></span><span style=display:flex><span>   secretsmanager.yaml
+</span></span><span style=display:flex><span>   codestar.yaml
+</span></span><span style=display:flex><span>   prefix
+</span></span><span style=display:flex><span>    L alb.yaml
+</span></span><span style=display:flex><span>      cf.yaml
+</span></span><span style=display:flex><span>      ecs-cluster.yaml
+</span></span><span style=display:flex><span>      ecs-task-def.yaml
+</span></span><span style=display:flex><span>      ecs-service.yaml
+</span></span><span style=display:flex><span>      cw-logs.yaml
+</span></span><span style=display:flex><span>      ecr.yaml
+</span></span><span style=display:flex><span>      codepipeline.yaml
+</span></span><span style=display:flex><span>app(new)
+</span></span></code></pre></div><p>アプリケーションは全て記載すると収まらないのでサンプルをご覧ください。<br>重要なところは、buildspec.ymlです。ここだけyamlではなくymlですが、どっちでもいいです。AWSのデフォルトがbuildspec.ymlだったので公式に合わせました。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>version</span>: <span style=color:#ae81ff>0.2</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>run-as</span>: <span style=color:#ae81ff>root</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>phases</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>install</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runtime-versions</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>docker</span>: <span style=color:#ae81ff>20</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>pre_build</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>commands</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>export AWS_REPOSITORY_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION_NAME}.amazonaws.com/${PREFIX}/${ENV}/${PROJECT}</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>export DATETIME=`date +&#34;%Y%m%d%H%M%S&#34;`</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>export LATEST_IMAGE_URI=${AWS_REPOSITORY_URI}:latest</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>export IMAGE_URI=${AWS_REPOSITORY_URI}:${DATETIME}</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>export APP_DIR=022-cfn07-cicd/app</span> <span style=color:#75715e># プロジェクトによって変更</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>aws ecr get-login-password --region ${AWS_REGION_NAME} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION_NAME}.amazonaws.com</span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e># 対象Imageがない場合でもビルド失敗にならないように</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>docker pull ${LATEST_IMAGE_URI} || true</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>build</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>commands</span>:
+</span></span><span style=display:flex><span>      - |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        docker build -f ${APP_DIR}/Dockerfile \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          -t ${LATEST_IMAGE_URI} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          -t ${IMAGE_URI} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          ${APP_DIR}</span>        
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>post_build</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>commands</span>:
+</span></span><span style=display:flex><span>     - <span style=color:#ae81ff>docker push --all-tags ${AWS_REPOSITORY_URI}</span>
+</span></span><span style=display:flex><span>     - <span style=color:#ae81ff>echo &#39;[{&#34;name&#34;:&#34;&#39;${PREFIX}-${ENV}-${PROJECT}-container&#39;&#34;,&#34;imageUri&#34;:&#34;&#39;${IMAGE_URI}&#39;&#34;}]&#39; &gt; imagedefinitions.json</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>artifacts</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>files</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#ae81ff>imagedefinitions.json</span>
+</span></span></code></pre></div><p>yamlファイルの内容としては以下になります。</p><ol><li>扱いやすいように環境変数に入れていく。CodeBuildで設定した値を使用している。</li><li>ECRにログインし、ECRの最新イメージをPullする</li><li>Dockerfileからイメージをビルドする<br>この時、ECRからPullしたイメージがあればそれをキャッシュ利用する<br>最新のlatestと一意の時刻によるタグ付けをする</li><li>ビルドしたイメージをECRにPushする</li><li>コンテナ名とECRのURIを記載したアーティファクト作成</li></ol><p>アプリケーションのコードをGitHubにあげてCodePipelineを実行するとECSのコンテナに反映されると思います。<br>反映されたアプリケーションにアクセスしてみましょう。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>curl -i https://looseller.com
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>HTTP/2 <span style=color:#ae81ff>200</span> 
+</span></span><span style=display:flex><span>content-type: text/html; charset<span style=color:#f92672>=</span>utf-8
+</span></span><span style=display:flex><span>content-length: <span style=color:#ae81ff>12</span>
+</span></span><span style=display:flex><span>date: Wed, <span style=color:#ae81ff>10</span> May <span style=color:#ae81ff>2023</span> 00:11:11 GMT
+</span></span><span style=display:flex><span>x-powered-by: Express
+</span></span><span style=display:flex><span>etag: W/<span style=color:#e6db74>&#34;c-Lve95gjOVATpfV8EL5X4nxwjKHE&#34;</span>
+</span></span><span style=display:flex><span>x-cache: Miss from cloudfront
+</span></span><span style=display:flex><span>via: 1.1 1b3fd5e3e9b3fd38054dc45b58346688.cloudfront.net <span style=color:#f92672>(</span>CloudFront<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>x-amz-cf-pop: NRT12-C3
+</span></span><span style=display:flex><span>x-amz-cf-id: O86hc2jhLai6xd3_HGq7B77035i3jMcVswMeJ7H4T4ZwRyg-C6eObQ<span style=color:#f92672>==</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Hello World!
+</span></span></code></pre></div><p>200レスポンスでHello World!が返ってきましたね！
+これでやっと全て完了です！長かった&mldr;</p><h1 id=かかった金額>かかった金額</h1><p>今回のサンプルAWSリソースを作成してかかった金額が以下になります。<br>無料枠も使用しています。<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/022/022-aws-cost.png></div>EC2その他は、NatGatewayになります。<br>こう見るとNatGatewayが高いですね。一日1.5ドルほどかかっているので日数が経つと、ちりつもで痛い&mldr;<br>NatGateway使用しないで構築する方法もあるにはあるのですが、NatGatewayの方が一般的で分かりやすいので<br>また、月末で料金がプラスでかかってくるかもしれないので、コスト確定の通知が来たら追加で貼ろうかなと思います。</p><h1 id=終わりに>終わりに</h1><p>最後のCICD編が一番テンプレート多かったですね&mldr;<br>それに<code>hello world!</code>をただ出すアプリケーションにしてはリッチすぎるかもしれません<br>(´・ω・｀)<br>RDSやWafなどプロジェクトによっては他にも追加するリソースはあるかもしれませんが、ほとんどのプロジェクトはこの記事のサンプルコードをただ流せば1時間もかけずに環境が構築できてしまいますね。ドメインの取得はお忘れなく<br>あ、また繰り返しになりますが、このサンプルコードのテンプレートの切り分けはあくまで記事用に作成したものです。AWSのベストプレクティスからは外れているのでまんまコピペして先輩エンジニアに怒られないように気をつけてくださいね。<br>この記事を作成するにあたって、クラスメソッドさんのDevelopersIOに大変お世話になりました。困ったらDevelopersIOで検索すれば大体は解決しますね。<br>長くなりましたが、記事で利用したドメインもあと１日で切れそうですし、筆(指)を置きたいと思います。</p><h1 id=参考>参考</h1><ul><li><a href=https://dev.classmethod.jp/articles/aws-codepipeline-github-connection-v2/>DevelopersIO / AWS CodePipeline のGitHub への接続(バージョン2)を作成してみた</a></li></ul></div></div><div id=post-footer class="post-footer main-content-wrap"><div class=post-footer-tags><span class="text-color-light text-small">タグ</span><br><a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/aws/>AWS</a>
+<a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/cloudformation/>cloudformation</a></div><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/021-cfn06-container/ data-tooltip="[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編" aria-label="前: [CloudFormation] CFnで環境作り完全版 Part6. コンテナ編"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></article><footer id=footer class=main-content-wrap><span class=copyrights>&copy; 2023 <a href=https://github.com/kita21>kita21</a>. All Rights Reserved</span></footer></div><div id=bottom-bar class=post-bottom-bar data-behavior=1><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/021-cfn06-container/ data-tooltip="[CloudFormation] CFnで環境作り完全版 Part6. コンテナ編" aria-label="前: [CloudFormation] CFnで環境作り完全版 Part6. コンテナ編"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></div><div id=about><div id=about-card><div id=about-btn-close><i class="fa fa-times"></i></div><img id=about-card-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像><h4 id=about-card-name>kita21</h4><div id=about-card-bio><strong>no rest no life</strong></div><div id=about-card-job><i class="fa fa-briefcase"></i><br>web engineer</div><div id=about-card-location><i class="fa fa-map-marker-alt"></i><br>Japan</div></div></div><div id=cover style=background-image:url(https://ki-ta.blog/images/cover.jpg)></div><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://ki-ta.blog/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-gE8KAQyFIzV1C9+GZ8TKJHZS2s+n7EjNtC+IMRn1l5+WYJTHOODUM6JSjZhFhqXmc7bG8Av6XXpckA4tYhflnw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/apache.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-EWROca+bote+7Oaaar1F6y74iZj1r1F9rm/ly7o+/FwJopbBaWtsFDmaKoZDd3QiGU2pGacBirHJNivmGLYrow==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/go.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-GDVzAn0wpx1yVtQsRWmFc6PhJiLBPdUic+h4GWgljBh904O3JU10fk9EKNpVyIoPqkFn54rgL2QBG4BmUTMpiQ==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/http.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-UgZlma8NzkrDb/NWgmLIcTrH7i/CSnLLDRFqCSNF5NGPpjKmzyM25qcoXGOup8+cDakKyaiTDd7N4dyH4YT+IA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/less.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-lot9koe73sfXIrUvIPM/UEhuMciN56RPyBdOyZgfO53P2lkWyyXN7J+njcxIIBRV+nVDQeiWtiXg+bLAJZDTfg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/nginx.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-Zd3e7XxHP00TD0Imr0PIfeM0fl0v95kMWuhyAS3Wn1UTSXTkz0OhtRgBAr4JlmADRgiXr4x7lpeUdqaGN8xIog==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/puppet.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-qtqDO052iXMSP+5d/aE/jMtL9vIIGvONgTJziC2K/ZIB1yEGa55WVxGE9/08rSQ62EoDifS9SWVGZ7ihSLhzMA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/scss.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-1NmkjnEDnwwwcu28KoQF8vs3oaPFokQHbmbtwGhFfeDsQZtVFI8zW2aE9O8yMYdpdyKV/5blE4pSWw4Z/Sv97w==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/stylus.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-B2wSfruPjr8EJL6IIzQr1eAuDwrsfIfccNf/LCEdxELCgC/S/ZMt/Uvk80aD79m7IqOqW+Sw8nbkvha20yZpzg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/swift.min.js></script>
+<script async crossorigin=anonymous defer fbadminids=100035276171326 integrity="sha512-28oDiQZGKUVN6wQ7PSLPNipOcmkCALXKwOi7bnkyFf8QiMZQxG9EQoy/iiNx6Zxj2cG2SbVa4dXKigQhu7GiFw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/yaml.min.js></script>
+<script>$(document).ready(function(){hljs.configure({classPrefix:"",useBR:!1}),$("pre.code-highlight > code, pre > code").each(function(e,t){$(this).hasClass("codeblock")||$(this).addClass("codeblock"),hljs.highlightBlock(t)})})</script></body></html>
