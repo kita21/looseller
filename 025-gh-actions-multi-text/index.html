@@ -1,0 +1,232 @@
+<!doctype html><html lang=ja><head><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法","datePublished":"2023-11-27T00:00:00Z","dateModified":"2023-11-27T00:00:00Z","author":{"@type":"Person","name":"kita21","image":"https://ki-ta.blog/images/avatar.png"},"mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/ki-ta.blog\/025-gh-actions-multi-text\/"},"publisher":{"@type":"Organization","name":"ゆるだら ブログ","logo":{"@type":"ImageObject","url":"https://ki-ta.blog/images/avatar.png"}},"description":"GithubActionsで複数行でできているシークレットなテキストを使用してビルドしたい時にTips","keywords":[]}</script><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=generator content="Hugo 0.111.3 with theme Tranquilpeak 0.5.3-BETA"><meta name=author content="kita21"><meta name=keywords content><meta name=description content="How to use secret multi-line text at build time"><meta property="og:description" content="How to use secret multi-line text at build time"><meta property="og:type" content="article"><meta property="og:title" content="[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法"><meta name=twitter:title content="[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法"><meta property="og:url" content="https://ki-ta.blog/025-gh-actions-multi-text/"><meta property="twitter:url" content="https://ki-ta.blog/025-gh-actions-multi-text/"><meta property="og:site_name" content="ゆるだら ブログ"><meta property="og:description" content="How to use secret multi-line text at build time"><meta name=twitter:description content="How to use secret multi-line text at build time"><meta property="og:locale" content="ja"><meta property="article:published_time" content="2023-11-27T00:00:00"><meta property="article:modified_time" content="2023-11-27T00:00:00"><meta property="article:section" content="インフラ・開発環境"><meta property="article:tag" content="github"><meta property="article:tag" content="cicd"><meta name=twitter:card content="summary"><meta property="og:image" content="https://ki-ta.blog/images/avatar.png"><meta property="twitter:image" content="https://ki-ta.blog/images/avatar.png"><title>[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法</title><link rel=icon href=https://ki-ta.blog/images/avatar.png><link rel=canonical href=https://ki-ta.blog/025-gh-actions-multi-text/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://ki-ta.blog/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css><script async src="https://www.googletagmanager.com/gtag/js?id=G-VHM9P1Z719"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-VHM9P1Z719",{anonymize_ip:!1})}</script></head><body><div id=blog><header id=header data-behavior=1><i id=btn-open-sidebar class="fa fa-lg fa-bars"></i><div class=header-title><a class=header-title-link href=https://ki-ta.blog/ aria-label=ホームページへ>ゆるだら ブログ</a></div></header><nav id=sidebar data-behavior=1><div class=sidebar-container><div class=sidebar-profile><a href=https://ki-ta.blog/#about aria-label=著者についてもっと読む><img class=sidebar-profile-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像></a><h4 class=sidebar-profile-name>kita21</h4><h5 class=sidebar-profile-bio><strong>no rest no life</strong></h5></div><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/ title=Home><i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden=true></i>
+<span class=sidebar-button-desc>ホーム</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/categories title=Categories><i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden=true></i>
+<span class=sidebar-button-desc>カテゴリー</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/tags title=Tags><i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden=true></i>
+<span class=sidebar-button-desc>タグ</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/archives title=Archives><i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden=true></i>
+<span class=sidebar-button-desc>アーカイブ</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://github.com/kita21 target=_blank rel=noopener title=GitHub><i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden=true></i>
+<span class=sidebar-button-desc>GitHub</span></a></li><li class=sidebar-button><a class=sidebar-button-link href="https://www.facebook.com/profile.php?id=100035276171326" target=_blank rel=noopener title=Facebook><i class="sidebar-button-icon fab fa-lg fa-facebook" aria-hidden=true></i>
+<span class=sidebar-button-desc>Facebook</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/index.xml title=RSS><i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden=true></i>
+<span class=sidebar-button-desc>RSS</span></a></li></ul></div></nav><div id=main data-behavior=1 class=hasCoverMetaIn><article class=post id=top><div class="post-header main-content-wrap text-left"><h1 class=post-title>[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法</h1><div class="postShorten-meta post-meta"><time datetime=2023-11-27T00:00:00Z>11月 27, 2023</time>
+<span>カテゴリー</span>
+<a class=category-link href=https://ki-ta.blog/categories/%e3%82%a4%e3%83%b3%e3%83%95%e3%83%a9%e9%96%8b%e7%99%ba%e7%92%b0%e5%a2%83>インフラ・開発環境</a></div></div><div class="post-content markdown"><div class=main-content-wrap><h1 id=table-of-contents>目次</h1><nav id=TableOfContents><ul><li><a href=#introduction>Introduction</a></li><li><a href=#はじめに>はじめに</a></li><li><a href=#handon>HandOn</a><ul><li><a href=#secretmanagerとcloudrunの用意>SecretManagerとCloudRunの用意</a></li><li><a href=#secretmanagerの値をgithubactionsで使用できるようにする>SecretManagerの値をGithubActionsで使用できるようにする</a><ul><li><a href=#secretmanagerの値をファイルに格納>SecretManagerの値をファイルに格納</a></li><li><a href=#secretmount>SecretMount</a></li></ul></li></ul></li><li><a href=#終わりに>終わりに</a></li></ul></nav><h1 id=introduction>Introduction</h1><p>Next.jsを使用したプロジェクトでGithubActionsでCICDを構築しました。<br>Next.jsのビルド時に<code>.env.local</code>を使用した環境変数が必要みたいだったので、GCPのSecretManagerからシークレットを取得してビルドしたのですが、Next.jsのビルド時にエラーが発生しました。エラーを調べてみると環境変数が読み込まれてませんでした。<br>調べてみると執筆時点では、GithubActionsは改行を挟む文字列の出力を苦手みたいでした。そんなGitHubActionsと私の格闘備忘録になります。</p><h1 id=はじめに>はじめに</h1><p>今回はTips記事なのでNext.jsを動かすためのCloudRunと付属するリソースのterraformコードが登場しますが、肝心なところはGithubActionsの設定ファイルと実際にビルドするところのDockerfileになります。<br>環境は前回の<a href=https://ki-ta.blog/025-tf-cloudrun-gh-actions/>CloudRunでアプリケーションを動かすチュートリアル</a>で作成したCloudRunにNext.jsが動いている前提で説明していきます。<br>今回のポイントです。</p><ul><li>env.localは機密情報のためビルドされたイメージには残らないようにしたいので、DockerのSecretMountを使用</li><li>また、CloudRunで立ち上がる際に機密情報を参照できるように「ボリュームのマウント」とシンボリックリンクを活用</li><li>GithubActionsで対応できない機密情報の複数行テキストの変数をファイルに保存するために、catコマンドの入力・出力リダイレクトをうまく利用</li></ul><h1 id=handon>HandOn</h1><h2 id=secretmanagerとcloudrunの用意>SecretManagerとCloudRunの用意</h2><p>では、まず今回のメインである機密情報を保存するためのSecretMangerのテンプレートを作成します</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;google_secret_manager_secret&#34; &#34;cloudrun-secret&#34;</span> {
+</span></span><span style=display:flex><span>  secret_id <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;cloudrun-secret&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>replication</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>user_managed</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>replicas</span> {
+</span></span><span style=display:flex><span>        location <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;asia-northeast1&#34;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>resource</span> <span style=color:#e6db74>&#34;google_secret_manager_secret_version&#34; &#34;cloudrun-secret-version&#34;</span> {
+</span></span><span style=display:flex><span>  secret <span style=color:#f92672>=</span> <span style=color:#66d9ef>google_secret_manager_secret</span>.<span style=color:#66d9ef>cloudrun</span><span style=color:#960050;background-color:#1e0010>-</span><span style=color:#66d9ef>secret</span>.<span style=color:#66d9ef>id</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  secret_data <span style=color:#f92672>=</span> <span style=color:#66d9ef>var</span>.<span style=color:#66d9ef>input</span><span style=color:#960050;background-color:#1e0010>-</span><span style=color:#66d9ef>secret</span><span style=color:#960050;background-color:#1e0010>-</span><span style=color:#66d9ef>text</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><code>var.input-secret-text</code>は、複数行のテキストになります。例えば以下のような例になります。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>DATABASE_PASSWORD=XXXXXXX
+</span></span><span style=display:flex><span>API_KEY=YYYYYY
+</span></span></code></pre></div><p>次に、Next.jsが動くCloudRunのテンプレートです。前回に追記していきます</p><pre tabindex=0><code># https://github.com/GoogleCloudPlatform/terraform-google-cloud-run
+module &#34;cloudrun&#34; {
+  source  = &#34;GoogleCloudPlatform/cloud-run/google&#34;
+  version = &#34;~&gt; 0.8.0&#34;
+
+  service_name = &#34;${local.env}-${local.project}&#34;
+  project_id   = local.project-id
+  location     = local.location
+  image        = &#34;${local.location}-docker.pkg.dev/${local.project-id}/${local.project}/${local.env}-${local.project}-cloudrun:latest&#34;
+  template_annotations = {
+    &#34;autoscaling.knative.dev/maxScale&#34; = 1
+    &#34;autoscaling.knative.dev/minScale&#34; = 0
+  }
+  ports = {
+    name = &#34;http1&#34;
+    port = 3001
+  }
+  limits = {
+    cpu    = &#34;1000m&#34;
+    memory = &#34;256Mi&#34;
+  }
+  members = [&#34;allUsers&#34;]
+  volume_mounts = [
+    {
+      name       = &#34;cloudrun-secret&#34;
+      mount_path = &#34;/app/apps/web/envs&#34;
+    }
+  ]
+  volumes = [
+    {
+      name = &#34;cloudrun-secret&#34;
+      secret = [
+        {
+          secret_name = google_secret_manager_secret.cloudrun-secret.secret_id
+          items = {
+            key  = &#34;latest&#34;
+            path = &#34;cloudrun-secret&#34;
+          }
+        }
+      ]
+    }
+  ]
+  service_account_email = module.cloudrun_service_account.email
+}
+</code></pre><p>追記したところは、<code>volume_mounts</code>と<code>volumes</code>になります。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-hcl data-lang=hcl><span style=display:flex><span>  volume_mounts <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      name       <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;cloudrun-secret&#34;</span>
+</span></span><span style=display:flex><span>      mount_path <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;/app/apps/web/envs&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>  volumes <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;cloudrun-secret&#34;</span>
+</span></span><span style=display:flex><span>      secret <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>          secret_name <span style=color:#f92672>=</span> <span style=color:#66d9ef>google_secret_manager_secret</span>.<span style=color:#66d9ef>cloudrun</span><span style=color:#960050;background-color:#1e0010>-</span><span style=color:#66d9ef>secret</span>.<span style=color:#66d9ef>secret_id</span>
+</span></span><span style=display:flex><span>          items <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>            key  <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;latest&#34;</span>
+</span></span><span style=display:flex><span>            path <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;cloudrun-secret&#34;</span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      ]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span></code></pre></div><p>アプリケーションによって変わりますが、今回の例は<code>/app/apps/web/envs/cloudrun-secret</code>にSecretManagerのデータをおきます。</p><h2 id=secretmanagerの値をgithubactionsで使用できるようにする>SecretManagerの値をGithubActionsで使用できるようにする</h2><h3 id=secretmanagerの値をファイルに格納>SecretManagerの値をファイルに格納</h3><p>ボリュームのマウントでSecretManagerの値をCloudRunで参照できるようになりました。
+次にGithubActionsからSecretManagerのデータを取得するようにします。<br>前回の<a href=https://ki-ta.blog/025-tf-cloudrun-gh-actions/>CloudRunでアプリケーションを動かすチュートリアル</a>のworkflowsの設定ファイルに追記します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Deploy to gcp cloudrun</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>workflow_dispatch</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>push</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>develop</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>permissions</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>id-token</span>: <span style=color:#ae81ff>write</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>contents</span>: <span style=color:#ae81ff>read</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>env</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>WORKLOAD_IDENTITY_PROVIDER</span>: <span style=color:#ae81ff>projects/xxxxxx/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>GAR_REPO</span>: <span style=color:#ae81ff>tech-blog</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>DEPLOY_REGION</span>: <span style=color:#ae81ff>asia-northeast1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>BuildAndDeploy</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>timeout-minutes</span>: <span style=color:#ae81ff>20</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-22.04</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
+</span></span><span style=display:flex><span>    <span style=color:#75715e># env</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Env Each. Env Setting</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>if</span>: <span style=color:#ae81ff>github.ref == &#39;refs/heads/develop&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo NEXT_PUBLIC_SERVICE_ENV=development &gt;&gt; $GITHUB_ENV
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo GCP_PROJECT_ID=development-project &gt;&gt; $GITHUB_ENV
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo SERVICE_NAME=development-tech-blog &gt;&gt; $GITHUB_ENV</span>          
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Common. Env Setting</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo GCP_SERVICE_ACCOUNT=github-actions-deploy@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com &gt;&gt; $GITHUB_ENV
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo GAR_DOCKER_REPO=${{ env.DEPLOY_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.SERVICE_NAME }} &gt;&gt; $GITHUB_ENV</span>          
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># setting</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Github Checkout</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v3</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>id</span>: <span style=color:#ae81ff>auth</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Authenticate to Google Cloud</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>google-github-actions/auth@v1</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>workload_identity_provider</span>: <span style=color:#ae81ff>${{ env.WORKLOAD_IDENTITY_PROVIDER }}</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>service_account</span>: <span style=color:#ae81ff>${{ env.GCP_SERVICE_ACCOUNT }}</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Setup Cloud SDK</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>google-github-actions/setup-gcloud@v1</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Authorize Docker push</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>gcloud auth configure-docker ${{ env.DEPLOY_REGION }}-docker.pkg.dev</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>id</span>: <span style=color:#ae81ff>secrets</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#e6db74>&#39;google-github-actions/get-secretmanager-secrets@v1&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>secrets</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            cloudrun-secret:projects/xxxxxx/secrets/cloudrun-secret</span>            
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Create SecretDotEnv</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          cat &lt;&lt;EOF &gt; .env
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          ${{ steps.secrets.outputs.cloudrun-secret }}
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          EOF</span>          
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># build</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Pull Latest Image</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>docker pull ${{ env.GAR_DOCKER_REPO }}:latest || true</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Build Docker Image</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          docker build -f Dockerfile . \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -t ${{ env.GAR_DOCKER_REPO }}:${{ github.sha }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            -t ${{ env.GAR_DOCKER_REPO }}:latest \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --secret id=cloudrun-secret,src=.env \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --cache-from ${{ env.GAR_DOCKER_REPO }}:latest</span>          
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Push</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>docker push --all-tags ${{ env.GAR_DOCKER_REPO }}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># deploy</span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Deploy to CloudRun</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          gcloud run deploy $SERVICE_NAME \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --project=${{ env.GCP_PROJECT_ID }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --image=${{ env.GAR_DOCKER_REPO }}:${{ github.sha }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --region=${{ env.DEPLOY_REGION }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --service-account=${{ env.GCP_SERVICE_ACCOUNT }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --allow-unauthenticated \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            --no-use-http2</span>          
+</span></span></code></pre></div><p>追記したところは、2箇所あります。<br>まず、SecretManagerから取得してその値をファイルに格納するところです。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span>      - <span style=color:#f92672>id</span>: <span style=color:#ae81ff>secrets</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#e6db74>&#39;google-github-actions/get-secretmanager-secrets@v1&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>secrets</span>: |-<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            cloudrun-secret:projects/xxxxxx/secrets/cloudrun-secret</span>            
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Create SecretDotEnv</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          cat &lt;&lt;EOF &gt; .env
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          ${{ steps.secrets.outputs.cloudrun-secret }}
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          EOF</span>          
+</span></span></code></pre></div><p>実は、前回の記事でseviceAccountにSecretManagerにアクセスできる権限を付与しているので、これでGitHubActionsからSecretManagerの値を取得することができます。
+secretManagerから値を取得するところは調べれば結構出てくると思うのですが、その値をファイルに格納するのにかなり苦労しました。通常の文字列をファイルにリダイレクトさせる</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>echo $cloudrun-secret &gt; .env
+</span></span></code></pre></div><p>だとうまくいきませんでした。調べてみるとGithubActionsは複数行を出力することが難しいようで最初の行しか出力されないようです。格闘した挙句catコマンドの入力・出力リダイレクトを使用して期待した挙動にすることができました。できるようになってしまえばなぜすぐにこの方法が出てこなかったのかと思いましたが、なかなか思いつかず苦戦しました。</p><h3 id=secretmount>SecretMount</h3><p>次に注目するところは、<code>--secret id=cloudrun-secret,src=.env</code>です。<br>secretオプションを使用することでファイル形式で機密情報をビルド時に渡すことが可能になります。<br>secretMountで渡られたファイルは、Dockerfileで<code>--mount=type=secret,id=cloudrun-secret</code>と記載することにより参照されます。<br>実際のSecretMountで渡されたファイルを取り出すDockerfileをNextjsを例に記載します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-docker data-lang=docker><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> node:20-slim AS builder</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> HOME<span style=color:#f92672>=</span>/build<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> $HOME</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> package-lock.json <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  package.json <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  $HOME/<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> apps/web $HOME/apps/web<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># SecretMountで渡ってきた.envでビルド</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> --mount<span style=color:#f92672>=</span>type<span style=color:#f92672>=</span>secret,id<span style=color:#f92672>=</span>haze-web-secret cp /run/secrets/haze-web-secret $HOME/apps/web/.env<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> npm ci<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> npm run build<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> node:20-slim AS release</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> NODE_ENV<span style=color:#f92672>=</span>production
+</span></span><span style=display:flex><span><span style=color:#66d9ef>ENV</span> HOME<span style=color:#f92672>=</span>/app<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> $HOME</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> --from<span style=color:#f92672>=</span>builder /build/apps/web/.next/standalone $HOME/<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># CloudRunで動くときにSecretManagerからMountで環境変数ファイルを参照するためにシンボリックリンクをはる</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> ln -s $HOME/apps/web/envs/cloudrun-secret $HOME/apps/web/.env.local<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>CMD</span> npm run start<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><p>これでSecretManagerにあるファイル形式の機密情報をビルド環境とCloudRunの実行環境両方で使用することができました。</p><h1 id=終わりに>終わりに</h1><p>SecretMangerで.env形式で保存した機密情報をGitHubActionsとCloudRunの実行環境両方で使用する方法を記載しました。例として記載したコードはわかりにくいと思いますが、自分用なのでご了承ください。<br>GitHubActionsのSecretMountとCloudRunのボリュームのマウントをうまく駆使して安全にそして機密情報の単一管理を実現しました。
+ビルドと実行環境のクレデンシャルを分けたり環境変数を一つずつ入れるのは管理が大変なため我ながら綺麗に纏まったかと思います。</p></div></div><div id=post-footer class="post-footer main-content-wrap"><div class=post-footer-tags><span class="text-color-light text-small">タグ</span><br><a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/github/>github</a>
+<a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/cicd/>cicd</a></div><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/025-tf-cloudrun-gh-actions/ data-tooltip="[Terraform] CloudRunでアプリケーションを動かすチュートリアル" aria-label="前: [Terraform] CloudRunでアプリケーションを動かすチュートリアル"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></article><footer id=footer class=main-content-wrap><span class=copyrights>&copy; 2023 <a href=https://github.com/kita21>kita21</a>. All Rights Reserved</span></footer></div><div id=bottom-bar class=post-bottom-bar data-behavior=1><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/025-tf-cloudrun-gh-actions/ data-tooltip="[Terraform] CloudRunでアプリケーションを動かすチュートリアル" aria-label="前: [Terraform] CloudRunでアプリケーションを動かすチュートリアル"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></div><div id=about><div id=about-card><div id=about-btn-close><i class="fa fa-times"></i></div><img id=about-card-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像><h4 id=about-card-name>kita21</h4><div id=about-card-bio><strong>no rest no life</strong></div><div id=about-card-job><i class="fa fa-briefcase"></i><br>web engineer</div><div id=about-card-location><i class="fa fa-map-marker-alt"></i><br>Japan</div></div></div><div id=cover style=background-image:url(https://ki-ta.blog/images/cover.jpg)></div><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://ki-ta.blog/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-gE8KAQyFIzV1C9+GZ8TKJHZS2s+n7EjNtC+IMRn1l5+WYJTHOODUM6JSjZhFhqXmc7bG8Av6XXpckA4tYhflnw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/apache.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-EWROca+bote+7Oaaar1F6y74iZj1r1F9rm/ly7o+/FwJopbBaWtsFDmaKoZDd3QiGU2pGacBirHJNivmGLYrow==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/go.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-GDVzAn0wpx1yVtQsRWmFc6PhJiLBPdUic+h4GWgljBh904O3JU10fk9EKNpVyIoPqkFn54rgL2QBG4BmUTMpiQ==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/http.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-UgZlma8NzkrDb/NWgmLIcTrH7i/CSnLLDRFqCSNF5NGPpjKmzyM25qcoXGOup8+cDakKyaiTDd7N4dyH4YT+IA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/less.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-lot9koe73sfXIrUvIPM/UEhuMciN56RPyBdOyZgfO53P2lkWyyXN7J+njcxIIBRV+nVDQeiWtiXg+bLAJZDTfg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/nginx.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-Zd3e7XxHP00TD0Imr0PIfeM0fl0v95kMWuhyAS3Wn1UTSXTkz0OhtRgBAr4JlmADRgiXr4x7lpeUdqaGN8xIog==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/puppet.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-qtqDO052iXMSP+5d/aE/jMtL9vIIGvONgTJziC2K/ZIB1yEGa55WVxGE9/08rSQ62EoDifS9SWVGZ7ihSLhzMA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/scss.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-1NmkjnEDnwwwcu28KoQF8vs3oaPFokQHbmbtwGhFfeDsQZtVFI8zW2aE9O8yMYdpdyKV/5blE4pSWw4Z/Sv97w==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/stylus.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-B2wSfruPjr8EJL6IIzQr1eAuDwrsfIfccNf/LCEdxELCgC/S/ZMt/Uvk80aD79m7IqOqW+Sw8nbkvha20yZpzg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/swift.min.js></script>
+<script async crossorigin=anonymous defer fbadminids=100035276171326 integrity="sha512-28oDiQZGKUVN6wQ7PSLPNipOcmkCALXKwOi7bnkyFf8QiMZQxG9EQoy/iiNx6Zxj2cG2SbVa4dXKigQhu7GiFw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/yaml.min.js></script>
+<script>$(document).ready(function(){hljs.configure({classPrefix:"",useBR:!1}),$("pre.code-highlight > code, pre > code").each(function(e,t){$(this).hasClass("codeblock")||$(this).addClass("codeblock"),hljs.highlightBlock(t)})})</script></body></html>
