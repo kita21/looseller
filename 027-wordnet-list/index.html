@@ -1,0 +1,531 @@
+<!doctype html><html lang=ja><head><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[Wordnet] アプリケーションで簡易利用な類義語の配列群を作成する","datePublished":"2024-01-03T00:00:00Z","dateModified":"2024-01-03T00:00:00Z","author":{"@type":"Person","name":"kita21","image":"https://ki-ta.blog/images/avatar.png"},"mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/ki-ta.blog\/027-wordnet-list\/"},"publisher":{"@type":"Organization","name":"ゆるだら ブログ","logo":{"@type":"ImageObject","url":"https://ki-ta.blog/images/avatar.png"}},"description":"Wordnetという意味辞書からなんとかして単純な類義語リストを作成する","keywords":["wordnet,, mongodb,, 類義語"]}</script><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=generator content="Hugo 0.111.3 with theme Tranquilpeak 0.5.3-BETA"><meta name=author content="kita21"><meta name=keywords content="wordnet,,mongodb,,類義語"><meta name=description content="How to use secret multi-line text at build time"><meta property="og:description" content="How to use secret multi-line text at build time"><meta property="og:type" content="article"><meta property="og:title" content="[Wordnet] アプリケーションで簡易利用な類義語の配列群を作成する"><meta name=twitter:title content="[Wordnet] アプリケーションで簡易利用な類義語の配列群を作成する"><meta property="og:url" content="https://ki-ta.blog/027-wordnet-list/"><meta property="twitter:url" content="https://ki-ta.blog/027-wordnet-list/"><meta property="og:site_name" content="ゆるだら ブログ"><meta property="og:description" content="How to use secret multi-line text at build time"><meta name=twitter:description content="How to use secret multi-line text at build time"><meta property="og:locale" content="ja"><meta property="article:published_time" content="2024-01-03T00:00:00"><meta property="article:modified_time" content="2024-01-03T00:00:00"><meta property="article:section" content="プログラミング・開発"><meta property="article:tag" content="mongodb"><meta name=twitter:card content="summary"><meta property="og:image" content="https://ki-ta.blog/images/avatar.png"><meta property="twitter:image" content="https://ki-ta.blog/images/avatar.png"><title>[Wordnet] アプリケーションで簡易利用な類義語の配列群を作成する</title><link rel=icon href=https://ki-ta.blog/images/avatar.png><link rel=canonical href=https://ki-ta.blog/027-wordnet-list/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://ki-ta.blog/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css><script async src="https://www.googletagmanager.com/gtag/js?id=G-VHM9P1Z719"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-VHM9P1Z719",{anonymize_ip:!1})}</script></head><body><div id=blog><header id=header data-behavior=1><i id=btn-open-sidebar class="fa fa-lg fa-bars"></i><div class=header-title><a class=header-title-link href=https://ki-ta.blog/ aria-label=ホームページへ>ゆるだら ブログ</a></div></header><nav id=sidebar data-behavior=1><div class=sidebar-container><div class=sidebar-profile><a href=https://ki-ta.blog/#about aria-label=著者についてもっと読む><img class=sidebar-profile-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像></a><h4 class=sidebar-profile-name>kita21</h4><h5 class=sidebar-profile-bio><strong>no rest no life</strong></h5></div><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/ title=Home><i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden=true></i>
+<span class=sidebar-button-desc>ホーム</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/categories title=Categories><i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden=true></i>
+<span class=sidebar-button-desc>カテゴリー</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/tags title=Tags><i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden=true></i>
+<span class=sidebar-button-desc>タグ</span></a></li><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/archives title=Archives><i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden=true></i>
+<span class=sidebar-button-desc>アーカイブ</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://github.com/kita21 target=_blank rel=noopener title=GitHub><i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden=true></i>
+<span class=sidebar-button-desc>GitHub</span></a></li><li class=sidebar-button><a class=sidebar-button-link href="https://www.facebook.com/profile.php?id=100035276171326" target=_blank rel=noopener title=Facebook><i class="sidebar-button-icon fab fa-lg fa-facebook" aria-hidden=true></i>
+<span class=sidebar-button-desc>Facebook</span></a></li></ul><ul class=sidebar-buttons><li class=sidebar-button><a class=sidebar-button-link href=https://ki-ta.blog/index.xml title=RSS><i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden=true></i>
+<span class=sidebar-button-desc>RSS</span></a></li></ul></div></nav><div id=main data-behavior=1 class=hasCoverMetaIn><article class=post id=top><div class="post-header main-content-wrap text-left"><h1 class=post-title>[Wordnet] アプリケーションで簡易利用な類義語の配列群を作成する</h1><div class="postShorten-meta post-meta"><time datetime=2024-01-03T00:00:00Z>1月 3, 2024</time>
+<span>カテゴリー</span>
+<a class=category-link href=https://ki-ta.blog/categories/%e3%83%97%e3%83%ad%e3%82%b0%e3%83%a9%e3%83%9f%e3%83%b3%e3%82%b0%e9%96%8b%e7%99%ba>プログラミング・開発</a></div></div><div class="post-content markdown"><div class=main-content-wrap><h1 id=table-of-contents>目次</h1><nav id=TableOfContents><ul><li><a href=#introduction>Introduction</a></li><li><a href=#技術選定>技術選定</a></li><li><a href=#実装方針>実装方針</a><ul><li><a href=#mongodbに類義語リストを作成する>MongoDBに類義語リストを作成する</a></li><li><a href=#wordnetの抽出方法>Wordnetの抽出方法</a></li></ul></li><li><a href=#バッチ実装>バッチ実装</a><ul><li><a href=#wordnet>wordnet</a></li><li><a href=#mongodbへinsert>mongodbへinsert</a></li></ul></li><li><a href=#バッチ実行結果>バッチ実行・結果</a></li><li><a href=#mongodbに入れた類義語を使用した検索実装>MongoDBに入れた類義語を使用した検索実装</a></li><li><a href=#デメリット>デメリット</a></li><li><a href=#まとめ>まとめ</a></li></ul></nav><h1 id=introduction>Introduction</h1><p>私は個人開発を進めており、その一環として検索機能の作成に取り組んでいます。その過程で、「類義語も検索できるようにしたい」という新たな要件が浮上しました。<br>類義語検索とは、ユーザーが入力した検索ワードと似た用語も検索対象に含める機能のことを指します。例えば、「りんご」と検索すると、「林檎」や「apple」も検索結果に表示されるような仕組みです。<br>この記事では、個人開発で類義語検索を実装する際の挑戦と、そのための費用抑制策についての私の経験を共有します。<br>WordNetについては、私自身まだ完全に理解しているわけではないので、より効率的な方法が存在するかもしれません。その点はご了承ください。</p><h1 id=技術選定>技術選定</h1><p><strong>全文検索エンジン</strong><br>私が採用したのは、<a href=https://www.mongodb.com/ja-jp/atlas/search>MongoAtlas Search</a>です。その理由は次のとおりです。</p><ul><li>アプリケーションのデータベースにはmongodbを使用しており、プラットフォームはMongoAtlasを利用しています。そのため、親和性が高く、リソースの管理も簡素化しやすい。</li><li>ElasticSearchやOpenSearchは高価になりやすく、安く抑えようとした場合リソースの管理が複雑化してしまうため個人開発には向かなそうと感じた。</li></ul><p><strong>類義語検索ツール</strong><br>類義語の抽出には、<a href=https://bond-lab.github.io/wnja/>WordNet</a>を選択しました。<br>理由は、単純に無料だからです。ElasticSearchは上記と同じようにやっぱり高くて管理が大変&mldr;
+WordNetからの抽出は、<a href=https://github.com/bond-lab/wnja/releases/download/v1.1/wnjpn.db.gz>sqlite</a>(注意: クリックするとダウンロードされます)で行います。<br>実装で使用するライブラリは<a href=https://github.com/TryGhost/node-sqlite3>sqlite3</a>ではなく、<a href=https://github.com/WiseLibs/better-sqlite3>better-sqlite3</a>を使用します。理由は単純に使い易いからです。</p><h1 id=実装方針>実装方針</h1><p>技術選定であげたMongoDBAtlasとWordNetを使用して実装します。</p><h2 id=mongodbに類義語リストを作成する>MongoDBに類義語リストを作成する</h2><p>WordNetで類義語を抽出し、Mongodbに保存<br>例) [林檎, りんご, リンゴ, apple]</p><h2 id=wordnetの抽出方法>Wordnetの抽出方法</h2><p>WordNetで関連する用語全て抽出します。(結構難しい)<br>個々の単語が保存されているwordテーブルと、単語同士の関連付けを表しているsynsetから類義語を抽出します。<br>例えば、wordテーブルとsenseテーブルをjoinして「りんご」でSELECTしてみます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#75715e>// sample1.js
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>Database</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#34;better-sqlite3&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>db</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Database</span>(<span style=color:#a6e22e>__dirname</span> <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;/wnjpn.db&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>word</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>argv</span>[<span style=color:#ae81ff>2</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows1</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  word.wordid, word.lemma, sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  FROM
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  INNER JOIN
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense ON sense.wordid = word.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    lemma = &#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>word</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;word result.&#34;</span>, <span style=color:#a6e22e>rows1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#a6e22e>rows1</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows1</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>    <span style=color:#f92672>?</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;`</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>:</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;, `</span>;
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows2</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  word.wordid, word.lemma, sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  FROM
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  INNER JOIN
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    synset in (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>synsetsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;synset result.&#34;</span>, <span style=color:#a6e22e>rows2</span>);
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ node sample1.js りんご
+</span></span><span style=display:flex><span>word result. <span style=color:#f92672>[</span> <span style=color:#f92672>{</span> wordid: 232488, lemma: <span style=color:#e6db74>&#39;りんご&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span> <span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>synset result. <span style=color:#f92672>[</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 32753, lemma: <span style=color:#e6db74>&#39;apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 186607, lemma: <span style=color:#e6db74>&#39;リンゴ&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 232488, lemma: <span style=color:#e6db74>&#39;りんご&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>これだけで、十分類義語検索できることがわかりました。<br>さらに取得したsynsetから抽出したwordに関連するwordを抽出します。(難しい&mldr;)<br>例えば、「りんご」を指定して実行すると類義語は上記の例から「apple」「リンゴ」「林檎」「りんご」になりますが、「林檎」を指定して実行するとまた結果が変わってきます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ node sample1.js 林檎
+</span></span><span style=display:flex><span>word result. <span style=color:#f92672>[</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>synset result. <span style=color:#f92672>[</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 32753, lemma: <span style=color:#e6db74>&#39;apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 186607, lemma: <span style=color:#e6db74>&#39;リンゴ&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 232488, lemma: <span style=color:#e6db74>&#39;りんご&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 34583, lemma: <span style=color:#e6db74>&#39;dessert_apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 106514, lemma: <span style=color:#e6db74>&#39;eating_apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 108310, lemma: <span style=color:#e6db74>&#39;apple_tree&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 202542, lemma: <span style=color:#e6db74>&#39;リンゴの木&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>そのため、関連するwordに関連するwordを抽出するという小難しいことをしないと網羅できません。<br>「dessert_apple」いる？という問いはなしでお願いします。あくまでWordNetに存在する類義語を抽出するという名目なので<br>では、sample1.jsを少し変更します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>Database</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#34;better-sqlite3&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>db</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Database</span>(<span style=color:#a6e22e>__dirname</span> <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;/wnjpn.db&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>word</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>argv</span>[<span style=color:#ae81ff>2</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows1</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  word.wordid, word.lemma, sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  FROM
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  INNER JOIN
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense ON sense.wordid = word.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    lemma = &#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>word</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#a6e22e>rows1</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows1</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>    <span style=color:#f92672>?</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;`</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>:</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;, `</span>;
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows2</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  word.wordid, word.lemma, sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  FROM
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  INNER JOIN
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    synset in (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>synsetsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>wordsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#a6e22e>rows2</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>wordsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows2</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>    <span style=color:#f92672>?</span> <span style=color:#a6e22e>wordsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>wordid</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;`</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>:</span> <span style=color:#a6e22e>wordsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>wordid</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;, `</span>;
+</span></span><span style=display:flex><span>});
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>sql</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  FROM
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  INNER JOIN
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word.wordid IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>wordsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>row3</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word.wordid, word.lemma, sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  FROM
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  INNER JOIN
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    synset in (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>sql</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;result.&#39;</span>, <span style=color:#a6e22e>row3</span>);
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ node sample1.js りんご
+</span></span><span style=display:flex><span>result. <span style=color:#f92672>[</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 32753, lemma: <span style=color:#e6db74>&#39;apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 186607, lemma: <span style=color:#e6db74>&#39;リンゴ&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 232488, lemma: <span style=color:#e6db74>&#39;りんご&#39;</span>, synset: <span style=color:#e6db74>&#39;07739125-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 34583, lemma: <span style=color:#e6db74>&#39;dessert_apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 106514, lemma: <span style=color:#e6db74>&#39;eating_apple&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;07739506-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 108310, lemma: <span style=color:#e6db74>&#39;apple_tree&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 202542, lemma: <span style=color:#e6db74>&#39;リンゴの木&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 204247, lemma: <span style=color:#e6db74>&#39;林檎&#39;</span>, synset: <span style=color:#e6db74>&#39;12633638-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 9112, lemma: <span style=color:#e6db74>&#39;orchard_apple_tree&#39;</span>, synset: <span style=color:#e6db74>&#39;12633994-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 32753, lemma: <span style=color:#e6db74>&#39;apple&#39;</span>, synset: <span style=color:#e6db74>&#39;12633994-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 80858, lemma: <span style=color:#e6db74>&#39;malus_pumila&#39;</span>, synset: <span style=color:#e6db74>&#39;12633994-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 186607, lemma: <span style=color:#e6db74>&#39;リンゴ&#39;</span>, synset: <span style=color:#e6db74>&#39;12633994-n&#39;</span> <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>{</span> wordid: 189620, lemma: <span style=color:#e6db74>&#39;りんごの木&#39;</span>, synset: <span style=color:#e6db74>&#39;12633994-n&#39;</span> <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>同じキーワードでも同じ結果が得られることがわかります。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ node sample1.js apple
+</span></span></code></pre></div><p>このロジックをうまく使いmongodbにinsertするバッチを作成していきます。</p><h1 id=バッチ実装>バッチ実装</h1><p>では、類義語を出力するバッチファイルを作成していきます。</p><h2 id=wordnet>wordnet</h2><p>WordNetから類義語を取得する実装になります。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#75715e>// sample2.js
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>Database</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#34;better-sqlite3&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>db</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Database</span>(<span style=color:#a6e22e>__dirname</span> <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;/wnjpn.db&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>total</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>100000000</span>; <span style=color:#75715e>// 最後のsynsetレコードだった場合はbreakするため実際のsynsetのレコード数よりも多ければ良い
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;import start!!!&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(<span style=color:#66d9ef>async</span> () =&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>time</span>(<span style=color:#e6db74>&#34;batch&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>total</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>i</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>synset</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getSynsetByOffset</span>(<span style=color:#a6e22e>i</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>synset</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;finish!!!!!. num: &#34;</span>, <span style=color:#a6e22e>i</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getWordIdsBySynset</span>(<span style=color:#a6e22e>synset</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getSynsetsByWordIds</span>(<span style=color:#a6e22e>synset</span>, <span style=color:#a6e22e>wordidsString</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>synsetsString</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeLog</span>(<span style=color:#e6db74>&#34;batch&#34;</span>, <span style=color:#e6db74>`skip. num: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getWordBySynsets</span>(<span style=color:#a6e22e>synsetsString</span>, <span style=color:#a6e22e>wordidsString</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>) =&gt; {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>lemma</span>);
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>uniq</span>(<span style=color:#a6e22e>words</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>1</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeLog</span>(<span style=color:#e6db74>&#34;batch&#34;</span>, <span style=color:#e6db74>`skip. num: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeLog</span>(<span style=color:#e6db74>&#34;batch&#34;</span>, <span style=color:#e6db74>`words:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#a6e22e>words</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeEnd</span>(<span style=color:#e6db74>&#34;batch&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>close</span>();
+</span></span><span style=display:flex><span>})();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Promise(<span style=color:#a6e22e>resolve</span> =&gt; <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>uniq</span>(<span style=color:#a6e22e>array</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> [...<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>array</span>)];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getSynsetByOffset</span>(<span style=color:#a6e22e>i</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.synset, count(sense.wordid)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    INNER JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    GROUP BY sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    ORDER BY sense.synset ASC
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    LIMIT 1
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    OFFSET </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>!==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>rows</span>[<span style=color:#ae81ff>0</span>].<span style=color:#a6e22e>synset</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>null</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getWordIdsBySynset</span>(<span style=color:#a6e22e>synset</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense.wordid, word.lemma
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    INNER JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    WHERE sense.synset = &#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    LIMIT 100
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  `</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>lemma</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>      <span style=color:#f92672>?</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>wordid</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>:</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>wordid</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, `</span>;
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>wordidsString</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getSynsetsByWordIds</span>(<span style=color:#a6e22e>synset</span>, <span style=color:#a6e22e>wordidsString</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.wordid IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>wordidsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    GROUP BY sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    ORDER BY sense.synset ASC
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>synsets</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>synsets</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>      <span style=color:#f92672>?</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;`</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>:</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;, `</span>;
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>synset</span> <span style=color:#f92672>!==</span> <span style=color:#a6e22e>synsets</span>[<span style=color:#ae81ff>0</span>]) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>synsetsString</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getWordBySynsets</span>(<span style=color:#a6e22e>synsetsString</span>, <span style=color:#a6e22e>wordidsString</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      word.wordid, word.lemma
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.synset IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>synsetsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>) AND
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.wordid NOT IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>wordidsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  `</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>rows</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>実行順序です。</p><ol><li>forでsynsetレコードを一件ずつ処理する</li><li><code>getSynsetByOffset</code>でLIMITとOFFSETを使用して順序が狂わないように一件ずつsynsetを取得。複数レコードあるsynsetはGROUP BYでまとめて同じsynsetは取得しないようにする</li><li><code>getWordIdsBySynset</code>で2で取得したsynsetから関連wordidを取得</li><li><code>getSynsetsByWordIds</code>で3で取得したwordidから2で取得したsynset以外にも存在するwordidと関連するsynsetを取得する</li><li><code>getWordBySynsets</code>でさらに4で取得したsynset群を利用してwordデータを取得する</li><li>取得したwordデータを配列に入れ、重複を排除する</li></ol><p>ポイントとしては、</p><ul><li>getSynsetsByWordIdsでsynset群を取得した時にforで指定したsynsetではなかった場合、既にそのsynsetは処理していると判断しスキップしている。そのためsynsetの重複によるwordの重複を考慮できる</li><li>Mongodbに負荷がかからないようにsleepで少しdelayさせている</li><li>特定のsynsetに関連するwordidを取得しwordidからまた関連するsynsetにとなるべく広く関連するワードをリスト化できるようにした</li></ul><p>以下で実行してみてください。類義語のリストが出力されるはずです。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ node sample2.js
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>import start!!!
+</span></span><span style=display:flex><span>batch: 1.480s words:0 <span style=color:#f92672>[</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;able&#39;</span>,        <span style=color:#e6db74>&#39;可能&#39;</span>,     <span style=color:#e6db74>&#39;up_to&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;equal_to&#39;</span>,    <span style=color:#e6db74>&#39;capable&#39;</span>,  <span style=color:#e6db74>&#39;adequate_to&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;適切&#39;</span>,        <span style=color:#e6db74>&#39;適当&#39;</span>,     <span style=color:#e6db74>&#39;能力のある&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;できる&#39;</span>,      <span style=color:#e6db74>&#39;敏腕&#39;</span>,     <span style=color:#e6db74>&#39;有能&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;優秀&#39;</span>,        <span style=color:#e6db74>&#39;尤&#39;</span>,       <span style=color:#e6db74>&#39;able-bodied&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;possible&#39;</span>,    <span style=color:#e6db74>&#39;ありうる&#39;</span>, <span style=color:#e6db74>&#39;workable&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;practicable&#39;</span>, <span style=color:#e6db74>&#39;feasible&#39;</span>, <span style=color:#e6db74>&#39;executable&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;viable&#39;</span>,      <span style=color:#e6db74>&#39;実行可能&#39;</span>, <span style=color:#e6db74>&#39;operable&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#39;手術可能&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><h2 id=mongodbへinsert>mongodbへinsert</h2><p>今回はORMにPrismaを使用します。Prismaについては説明しないので、わからない人は調べていただけると</p><pre tabindex=0><code class=language-prisma data-lang=prisma>generator client {
+  provider = &#34;prisma-client-js&#34;
+}
+
+datasource db {
+  provider = &#34;mongodb&#34;
+  url      = env(&#34;DATABASE_URL&#34;)
+}
+
+model Synset {
+  id    String           @id @default(auto()) @map(&#34;_id&#34;) @db.ObjectId
+  words String[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map(&#34;synsets&#34;)
+  @@index(fields: words, name: &#34;words_ix&#34;)
+}
+</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ npx prisma db push
+</span></span></code></pre></div><p>次に、sample2.jsの実装にMongoDBにInsertするコードを追加します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>Database</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#34;better-sqlite3&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>db</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Database</span>(<span style=color:#a6e22e>__dirname</span> <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;/wnjpn.db&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>PrismaClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#34;@prisma/client&#34;</span>).<span style=color:#a6e22e>PrismaClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>prisma</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PrismaClient</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>total</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>100000000</span>; <span style=color:#75715e>// 最後のsynsetレコードだった場合はbreakするため実際のsynsetのレコード数よりも多ければ良い
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;import start!!!&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(<span style=color:#66d9ef>async</span> () =&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>time</span>(<span style=color:#e6db74>&#34;batch&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>total</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>i</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>synset</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getSynsetByOffset</span>(<span style=color:#a6e22e>i</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>synset</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;finish!!!!!. num: &#34;</span>, <span style=color:#a6e22e>i</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getWordIdsBySynset</span>(<span style=color:#a6e22e>synset</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getSynsetsByWordIds</span>(<span style=color:#a6e22e>synset</span>, <span style=color:#a6e22e>wordidsString</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>synsetsString</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeLog</span>(<span style=color:#e6db74>&#34;batch&#34;</span>, <span style=color:#e6db74>`skip. num: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getWordBySynsets</span>(<span style=color:#a6e22e>synsetsString</span>, <span style=color:#a6e22e>wordidsString</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>) =&gt; {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>lemma</span>);
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>uniq</span>(<span style=color:#a6e22e>words</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>1</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeLog</span>(<span style=color:#e6db74>&#34;batch&#34;</span>, <span style=color:#e6db74>`skip. num: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>prisma</span>.<span style=color:#a6e22e>synset</span>.<span style=color:#a6e22e>create</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>data</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>words</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>    }).<span style=color:#66d9ef>catch</span>((<span style=color:#a6e22e>e</span>) =&gt; {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#34;error&#34;</span>, <span style=color:#a6e22e>e</span>);
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeLog</span>(<span style=color:#e6db74>&#34;batch&#34;</span>, <span style=color:#e6db74>`words:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#a6e22e>words</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>timeEnd</span>(<span style=color:#e6db74>&#34;batch&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>close</span>();
+</span></span><span style=display:flex><span>})();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Promise(<span style=color:#a6e22e>resolve</span> =&gt; <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>uniq</span>(<span style=color:#a6e22e>array</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> [...<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>array</span>)];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getSynsetByOffset</span>(<span style=color:#a6e22e>i</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.synset, count(sense.wordid)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    INNER JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    GROUP BY sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    ORDER BY sense.synset ASC
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    LIMIT 1
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    OFFSET </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>!==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>rows</span>[<span style=color:#ae81ff>0</span>].<span style=color:#a6e22e>synset</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>null</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getWordIdsBySynset</span>(<span style=color:#a6e22e>synset</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense.wordid, word.lemma
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    INNER JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    WHERE sense.synset = &#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    LIMIT 100
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  `</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>lemma</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>      <span style=color:#f92672>?</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>wordid</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>:</span> <span style=color:#a6e22e>wordidsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>wordid</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, `</span>;
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>wordidsString</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getSynsetsByWordIds</span>(<span style=color:#a6e22e>synset</span>, <span style=color:#a6e22e>wordidsString</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.wordid IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>wordidsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    GROUP BY sense.synset
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    ORDER BY sense.synset ASC
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>`</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>synsets</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>row</span>, <span style=color:#a6e22e>index</span>) =&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>synsets</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> (<span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>))
+</span></span><span style=display:flex><span>      <span style=color:#f92672>?</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;`</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>:</span> <span style=color:#a6e22e>synsetsString</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>`&#39;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>synset</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#39;, `</span>;
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>synset</span> <span style=color:#f92672>!==</span> <span style=color:#a6e22e>synsets</span>[<span style=color:#ae81ff>0</span>]) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>synsetsString</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getWordBySynsets</span>(<span style=color:#a6e22e>synsetsString</span>, <span style=color:#a6e22e>wordidsString</span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>prepare</span>(<span style=color:#e6db74>`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    SELECT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      word.wordid, word.lemma
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    FROM sense
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    JOIN word ON word.wordid = sense.wordid
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    WHERE
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.synset IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>synsetsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>) AND
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      sense.wordid NOT IN (</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>wordidsString</span><span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  `</span>).<span style=color:#a6e22e>all</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>rows</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>これでバッチ完成です。</p><h1 id=バッチ実行結果>バッチ実行・結果</h1><p>途中で止まらないようにパブリッククラウドでサーバーを立てて実行することをお勧めします。<br>私はAWSでm5.xlargeを使用して実行しました。<br>途中で切れないようにnohupコマンドを利用してバッチを実行します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span><span style=color:#75715e># 実行</span>
+</span></span><span style=display:flex><span>$ nohup node sample2.js &gt; out.log 2&gt; error.log &amp;
+</span></span><span style=display:flex><span><span style=color:#75715e># 途中経過</span>
+</span></span><span style=display:flex><span>$ tail out.log
+</span></span></code></pre></div><p>実行結果になります
+まずはどのくらい時間がかかったかout.logの中身を見てみます</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ tail out.log
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>batch: 9:27:08.171 <span style=color:#f92672>(</span>h:mm:ss.mmm<span style=color:#f92672>)</span> words:117658 <span style=color:#f92672>[</span> <span style=color:#e6db74>&#39;sep_11&#39;</span>, <span style=color:#e6db74>&#39;sept._11&#39;</span>, <span style=color:#e6db74>&#39;9/11&#39;</span>, <span style=color:#e6db74>&#39;september_11&#39;</span>, <span style=color:#e6db74>&#39;9-11&#39;</span>, <span style=color:#e6db74>&#39;9月11日&#39;</span> <span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>finish!!!!!. num:  <span style=color:#ae81ff>117659</span>
+</span></span><span style=display:flex><span>batch: 9:27:08.676 <span style=color:#f92672>(</span>h:mm:ss.mmm<span style=color:#f92672>)</span>
+</span></span></code></pre></div><p>9時間30分もかかっていました&mldr;<br>insertされたMongoDBのデータを見てみます<div class=figure><img class=fig-img src=https://ki-ta.blog/images/posts/027/027-mongodb-atlas.png></div>MongoDBAtlasの無料枠が500MBのはずなので余裕はあるかと思います。</p><h1 id=mongodbに入れた類義語を使用した検索実装>MongoDBに入れた類義語を使用した検索実装</h1><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>PrismaClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#34;@prisma/client&#34;</span>).<span style=color:#a6e22e>PrismaClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>prisma</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PrismaClient</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>arg</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>argv</span>[<span style=color:#ae81ff>2</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>(<span style=color:#66d9ef>async</span> () =&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rows</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>prisma</span>.<span style=color:#a6e22e>synset</span>.<span style=color:#a6e22e>findMany</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>where</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>words</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>hasSome</span><span style=color:#f92672>:</span> [<span style=color:#a6e22e>arg</span>],
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>words</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>rows</span>.<span style=color:#a6e22e>flatMap</span>(<span style=color:#a6e22e>row</span> =&gt; <span style=color:#a6e22e>row</span>.<span style=color:#a6e22e>words</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>JsonValue</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>prisma</span>.<span style=color:#a6e22e>xxxx</span>.<span style=color:#a6e22e>aggregateRaw</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>pipeline</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>$search</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>index</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;xxxx_search_ix&#34;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>text</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>query</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>words</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>words</span> <span style=color:#f92672>:</span> <span style=color:#a6e22e>arg</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>path</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#34;title&#34;</span>, <span style=color:#e6db74>&#34;description&#34;</span>]
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    ]
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;words&#39;</span>, <span style=color:#a6e22e>words</span>);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;searchResult&#39;</span>, <span style=color:#a6e22e>JsonValue</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>prisma</span>.<span style=color:#a6e22e>$disconnect</span>();
+</span></span><span style=display:flex><span>})();
+</span></span></code></pre></div><p>簡易的ですが、類義語の検索処理ができました。</p><h1 id=デメリット>デメリット</h1><ul><li>作成したバッチがsynsetとwordを複数回取得し、関連リストを作成するため、類似度が低いワードもリストに含まれてしまう。<ul><li>例えば「放出」と「上げる」が同じリストに入ってしまう。</li></ul></li><li>バッチがsynsetを１レコードずつしか処理しないため多くの時間を要してしまう。<ul><li>今回AWSのm5.xlargeで9時間半かかったので、オンデマンドインスタンスで1ドル150円と仮定して計算すると「<code>0.248 * 9.5 * 150 = 353.4円</code>」となります。んーすごい痛くはないですが気になる人は気になるお値段ですね。</li></ul></li><li>MongoDBを使用して今回の構成にすると類義語の取得と検索で2つのクエリが必要となり、ElasticSearchと比べ速度や負荷の面で劣る</li></ul><h1 id=まとめ>まとめ</h1><p>私はWordNetとMongoDBAtlasSearchを利用して、簡易的な検索機能を作成してみました。ElasticSearchと比較すると劣る面もありますが、それでも十分に使える機能が実装できたと自負しています。
+今回作成したものは、WordNetで少しでも類似性があるものをリスト化しています。そのため、類似度にはかなりの幅があると思います。もし読者の方が同じような構成を試してみる場合は、類似度が高いものだけで作成してみると、より類似度の高い検索機能が実装できるかもしれません。その場合は重複のワードには気をつけてください。</p></div></div><div id=post-footer class="post-footer main-content-wrap"><div class=post-footer-tags><span class="text-color-light text-small">タグ</span><br><a class="tag tag--primary tag--small" href=https://ki-ta.blog/tags/mongodb/>mongodb</a></div><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/025-gh-actions-multi-text/ data-tooltip="[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法" aria-label="前: [GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></article><footer id=footer class=main-content-wrap><span class=copyrights>&copy; 2024 <a href=https://github.com/kita21>kita21</a>. All Rights Reserved</span></footer></div><div id=bottom-bar class=post-bottom-bar data-behavior=1><div class=post-actions-wrap><nav><ul class="post-actions post-action-nav"><li class=post-action><a class="post-action-btn btn btn--disabled"><i class="fa fa-angle-left"></i>
+<span class="hide-xs hide-sm text-small icon-ml">次</span></a></li><li class=post-action><a class="post-action-btn btn btn--default tooltip--top" href=https://ki-ta.blog/025-gh-actions-multi-text/ data-tooltip="[GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法" aria-label="前: [GitHub Actions] シークレットな複数行のテキストをビルド時に使用する方法"><span class="hide-xs hide-sm text-small icon-mr">前</span>
+<i class="fa fa-angle-right"></i></a></li></ul></nav><ul class="post-actions post-action-share"><li class="post-action hide-lg hide-md hide-sm"><a class="post-action-btn btn btn--default btn-open-shareoptions" href=#btn-open-shareoptions aria-label=この記事を共有する><i class="fa fa-share-alt" aria-hidden=true></i></a></li><li class=post-action><a class="post-action-btn btn btn--default" href=#top aria-label=トップに戻る><i class="fa fa-arrow-up" aria-hidden=true></i></a></li></ul></div></div></div><div id=about><div id=about-card><div id=about-btn-close><i class="fa fa-times"></i></div><img id=about-card-picture src=https://ki-ta.blog/images/avatar.png alt=プロフィール画像><h4 id=about-card-name>kita21</h4><div id=about-card-bio><strong>no rest no life</strong></div><div id=about-card-job><i class="fa fa-briefcase"></i><br>web engineer</div><div id=about-card-location><i class="fa fa-map-marker-alt"></i><br>Japan</div></div></div><div id=cover style=background-image:url(https://ki-ta.blog/images/cover.jpg)></div><script src=https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin=anonymous referrerpolicy=no-referrer></script>
+<script src=https://ki-ta.blog/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-gE8KAQyFIzV1C9+GZ8TKJHZS2s+n7EjNtC+IMRn1l5+WYJTHOODUM6JSjZhFhqXmc7bG8Av6XXpckA4tYhflnw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/apache.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-EWROca+bote+7Oaaar1F6y74iZj1r1F9rm/ly7o+/FwJopbBaWtsFDmaKoZDd3QiGU2pGacBirHJNivmGLYrow==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/go.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-GDVzAn0wpx1yVtQsRWmFc6PhJiLBPdUic+h4GWgljBh904O3JU10fk9EKNpVyIoPqkFn54rgL2QBG4BmUTMpiQ==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/http.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-UgZlma8NzkrDb/NWgmLIcTrH7i/CSnLLDRFqCSNF5NGPpjKmzyM25qcoXGOup8+cDakKyaiTDd7N4dyH4YT+IA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/less.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-lot9koe73sfXIrUvIPM/UEhuMciN56RPyBdOyZgfO53P2lkWyyXN7J+njcxIIBRV+nVDQeiWtiXg+bLAJZDTfg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/nginx.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-Zd3e7XxHP00TD0Imr0PIfeM0fl0v95kMWuhyAS3Wn1UTSXTkz0OhtRgBAr4JlmADRgiXr4x7lpeUdqaGN8xIog==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/puppet.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-qtqDO052iXMSP+5d/aE/jMtL9vIIGvONgTJziC2K/ZIB1yEGa55WVxGE9/08rSQ62EoDifS9SWVGZ7ihSLhzMA==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/scss.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-1NmkjnEDnwwwcu28KoQF8vs3oaPFokQHbmbtwGhFfeDsQZtVFI8zW2aE9O8yMYdpdyKV/5blE4pSWw4Z/Sv97w==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/stylus.min.js></script>
+<script async crossorigin=anonymous defer integrity="sha512-B2wSfruPjr8EJL6IIzQr1eAuDwrsfIfccNf/LCEdxELCgC/S/ZMt/Uvk80aD79m7IqOqW+Sw8nbkvha20yZpzg==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/swift.min.js></script>
+<script async crossorigin=anonymous defer fbadminids=100035276171326 integrity="sha512-28oDiQZGKUVN6wQ7PSLPNipOcmkCALXKwOi7bnkyFf8QiMZQxG9EQoy/iiNx6Zxj2cG2SbVa4dXKigQhu7GiFw==" src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/languages/yaml.min.js></script>
+<script>$(document).ready(function(){hljs.configure({classPrefix:"",useBR:!1}),$("pre.code-highlight > code, pre > code").each(function(e,t){$(this).hasClass("codeblock")||$(this).addClass("codeblock"),hljs.highlightBlock(t)})})</script></body></html>
